@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Rana — Abecedario de Anuros</title>
+  <meta name="description" id="page-desc" content="Información de especie — Abecedario de Anuros">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/rana.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="index.html" class="site-logo">← Abecedario de Anuros</a>
+  <nav class="site-nav" id="rana-nav-header"></nav>
+</header>
+
+<div class="rana-page" id="rana-page">
+  <div class="loading-grid" id="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando especie…</p>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Imagen ampliada">
+  <button class="lightbox-close" id="lightbox-close" aria-label="Cerrar">×</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script type="module">
+  import { initializeApp }         from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { firebaseConfig }        from "./js/firebase-config.js";
+  import { RANAS_DATA, FONT_MAP, IUCN_CONFIG } from "./js/data.js";
+
+  const LETRAS = "abcdefghijklmnopqrstuvwxyz".split("");
+  const params  = new URLSearchParams(window.location.search);
+  const letra   = (params.get("letra") || "a").toLowerCase();
+  const letraIdx = LETRAS.indexOf(letra);
+
+  if (letraIdx === -1) {
+    document.getElementById("rana-page").innerHTML = `
+      <div class="loading-grid">
+        <p>Letra no encontrada. <a href="index.html" style="color:var(--accent)">Volver al inicio</a></p>
+      </div>`;
+  } else {
+    loadRana(letra, letraIdx);
+  }
+
+  async function loadRana(letra, idx) {
+    const baseData = RANAS_DATA.find(r => r.letra === letra);
+    let rana = { ...baseData };
+    try {
+      const app  = initializeApp(firebaseConfig);
+      const db   = getFirestore(app);
+      const snap = await getDoc(doc(db, "ranas", letra));
+      if (snap.exists()) rana = { ...rana, ...snap.data() };
+    } catch (e) { console.warn("Firestore no disponible:", e.message); }
+    renderRana(rana, idx);
+  }
+
+  function renderRana(r, idx) {
+    document.getElementById("page-title").textContent =
+      `${r.nombreComun} (${r.letra.toUpperCase()}) — Abecedario de Anuros`;
+    document.getElementById("page-desc").setAttribute("content",
+      r.descripcion?.substring(0, 160) || "");
+
+    const iucn     = IUCN_CONFIG[r.estadoIUCN] || IUCN_CONFIG["DD"];
+    const fontInfo = FONT_MAP[r.tipografia] || {};
+    const fontFamily = fontInfo.cssFamily || `${r.tipografia}, serif`;
+
+    // Cargar fuente si aplica
+    if (fontInfo.googleFont) {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = `https://fonts.googleapis.com/css2?family=${fontInfo.googleFont}&display=swap`;
+      document.head.appendChild(link);
+    }
+    if (fontInfo.localFile) {
+      const style = document.createElement("style");
+      style.textContent = `
+        @font-face {
+          font-family: '${r.tipografia}';
+          src: url('fonts/${fontInfo.localFile}/${fontInfo.localFile}.woff2') format('woff2'),
+               url('fonts/${fontInfo.localFile}/${fontInfo.localFile}.woff') format('woff');
+          font-weight: normal; font-style: normal; font-display: swap;
+        }
+        @font-face {
+          font-family: '${r.tipografia}';
+          src: url('fonts/${fontInfo.localFile}/${fontInfo.localFile}-italic.woff2') format('woff2'),
+               url('fonts/${fontInfo.localFile}/${fontInfo.localFile}-italic.woff') format('woff');
+          font-weight: normal; font-style: italic; font-display: swap;
+        }`;
+      document.head.appendChild(style);
+    }
+
+    // Navegación prev/next
+    const prevLetra = LETRAS[idx - 1];
+    const nextLetra = LETRAS[idx + 1];
+    document.getElementById("rana-nav-header").innerHTML = `
+      ${prevLetra ? `<a href="rana.html?letra=${prevLetra}" style="font-family:var(--ui);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:0.35rem 0.6rem;border-radius:4px;transition:color 0.3s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">← ${prevLetra.toUpperCase()}</a>` : ""}
+      ${nextLetra ? `<a href="rana.html?letra=${nextLetra}" style="font-family:var(--ui);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:0.35rem 0.6rem;border-radius:4px;transition:color 0.3s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">→ ${nextLetra.toUpperCase()}</a>` : ""}
+    `;
+
+    const pageUrl = `${window.location.origin}${window.location.pathname}?letra=${r.letra}`;
+
+    // ── Video segmentos ──
+    const videoSegmentos = r.videoSegmentos || [];
+    const videoHTML = videoSegmentos.length > 0 ? `
+      <div class="video-section content-section">
+        <p class="content-section-label">Timelapse de ilustración</p>
+        <div class="video-tabs" id="video-tabs">
+          ${videoSegmentos.map((seg, i) => `
+            <button class="video-tab ${i === 0 ? 'active' : ''}"
+              data-url="${seg.url}" data-start="${seg.inicio || 0}" data-end="${seg.fin || 0}"
+              onclick="selectVideoTab(this)">
+              ${seg.etiqueta || `Segmento ${i+1}`}${seg.inicio ? ` (${formatTime(seg.inicio)})` : ''}
+            </button>
+          `).join("")}
+        </div>
+        <div class="video-player" id="video-player">
+          ${buildVideoEmbed(videoSegmentos[0])}
+        </div>
+      </div>` : `
+      <div class="video-section content-section">
+        <p class="content-section-label">Timelapse de ilustración</p>
+        <div class="video-player">
+          <div class="no-video">El timelapse de esta rana aún no está disponible.</div>
+        </div>
+      </div>`;
+
+    // ── Imágenes de referencia ──
+    const refImages  = r.imagenesReferencia || [];
+    const refImgHTML = refImages.length > 0 ? `
+      <div class="content-section">
+        <p class="content-section-label">Imágenes de referencia</p>
+        <div class="ref-images-grid">
+          ${refImages.map(img => `
+            <div class="ref-image-item" onclick="openLightbox('${img.url}','${(img.caption||'').replace(/'/g,'\\'')}')">
+              <img src="${img.url}" alt="${img.caption || 'Imagen de referencia'}" loading="lazy">
+              ${img.caption ? `<p class="ref-image-caption">${img.caption}</p>` : ""}
+            </div>`).join("")}
+        </div>
+      </div>` : "";
+
+    // ── Referencias APA ──
+    const referencias = r.referencias || [];
+    const refAPAHTML  = referencias.length > 0 ? `
+      <div class="content-section">
+        <p class="content-section-label">Referencias</p>
+        <ul class="referencias-list">
+          ${referencias.map(ref => {
+            const partes = [];
+            if (ref.autor)    partes.push(`<span class="ref-autor">${ref.autor}</span>`);
+            if (ref.año)      partes.push(`(${ref.año})`);
+            if (ref.titulo)   partes.push(`<span class="ref-titulo">${ref.titulo}</span>`);
+            if (ref.editorial)partes.push(`<span class="ref-fuente">${ref.editorial}</span>`);
+            if (ref.lugar)    partes.push(`<span class="ref-fuente">${ref.lugar}</span>`);
+            if (ref.volumen)  partes.push(`<span class="ref-fuente">vol. ${ref.volumen}</span>`);
+            if (ref.paginas)  partes.push(`<span class="ref-fuente">pp. ${ref.paginas}</span>`);
+            return `<li>${partes.join(". ")}.${ref.url ? ` <a href="${ref.url}" target="_blank" rel="noopener">${ref.url}</a>` : ""}</li>`;
+          }).join("")}
+        </ul>
+      </div>` : "";
+
+    // ── iNaturalist ──
+    const inatHTML = r.inatLink ? `
+      <a href="${r.inatLink}" target="_blank" rel="noopener" class="inat-link">
+        Ver en iNaturalist ↗
+      </a>` : "";
+
+    // ── Render completo ──
+    document.getElementById("rana-page").innerHTML = `
+      <section class="rana-hero">
+        <div class="rana-letter-bg" aria-hidden="true" style="font-family:${fontFamily}">${r.letra.toUpperCase()}</div>
+
+        <div class="rana-hero-info fade-up">
+          <p class="clasificacion-badge">${r.clasificacion} · ${r.subclasificacion}</p>
+          <span class="rana-letra-display" style="font-family:${fontFamily};color:${r.colorAccent||'var(--accent)'}">
+            ${r.letra.toUpperCase()}${r.letra.toLowerCase()}
+          </span>
+          <h1 class="rana-nombre-comun">${r.nombreComun}</h1>
+          <p class="rana-nombre-cientifico">${r.nombreCientifico}</p>
+
+          <div class="rana-meta-chips">
+            <span class="meta-chip">📍 <strong>${r.region}</strong></span>
+            <span class="meta-chip">🌿 <strong>${r.habitat}</strong></span>
+            ${r.tamano ? `<span class="meta-chip">📏 <strong>${r.tamano}</strong></span>` : ""}
+          </div>
+
+          <div class="iucn-badge-large" style="background:${iucn.color}">
+            <span class="iucn-code">${r.estadoIUCN}</span>
+            <span class="iucn-label">${iucn.label} — Lista Roja IUCN</span>
+          </div>
+
+          <div class="tipo-display">
+            <p class="tipo-display-label">Tipografía asignada</p>
+            <p class="tipo-display-sample" style="font-family:${fontFamily}">
+              ${r.letra.toUpperCase()}${r.letra.toLowerCase()} &nbsp; Aa Bb
+            </p>
+            <p class="tipo-display-name">${r.tipografia}</p>
+            <p class="tipo-display-sub">${r.clasificacion} · ${r.subclasificacion}</p>
+          </div>
+        </div>
+
+        <div class="rana-hero-illustration fade-up" style="animation-delay:0.1s">
+          <div class="illustration-wrapper">
+            <div class="illustration-glow" style="background:${r.colorAccent||'#7CBA5A'}"></div>
+            <div class="illustration-frame" data-letra="${r.letra.toUpperCase()}">
+              ${r.imagenUrl
+                ? `<img class="illustration-img" src="${r.imagenUrl}" alt="Ilustración de ${r.nombreComun}">`
+                : `<div class="illustration-placeholder">🐸</div>`
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <main class="rana-content">
+        <div class="content-grid">
+          <div>
+            ${r.descripcion ? `
+            <div class="content-section">
+              <p class="content-section-label">Descripción</p>
+              <p class="descripcion-text">${r.descripcion}</p>
+              ${r.datoCurioso ? `
+              <div class="dato-curioso">
+                <p class="dc-label">Dato curioso</p>
+                <p>${r.datoCurioso}</p>
+              </div>` : ""}
+            </div>` : `
+            <div class="content-section">
+              <p class="content-section-label">Descripción</p>
+              <p style="color:var(--text-muted);font-style:italic">
+                La información de esta especie se está preparando y estará disponible pronto.
+              </p>
+            </div>`}
+
+            ${videoHTML}
+            ${refImgHTML}
+            ${refAPAHTML}
+            ${inatHTML}
+          </div>
+
+          <aside>
+            <div class="info-card">
+              <div class="info-card-header">Ficha de especie</div>
+              <dl>
+                <div class="info-row"><dt>Región</dt><dd>${r.region}</dd></div>
+                <div class="info-row"><dt>Hábitat</dt><dd>${r.habitat}</dd></div>
+                ${r.tamano ? `<div class="info-row"><dt>Tamaño</dt><dd>${r.tamano}</dd></div>` : ""}
+                <div class="info-row">
+                  <dt>Coloración</dt>
+                  <dd>${r.coloracion || '<em style="color:var(--text-muted)">Próximamente</em>'}</dd>
+                </div>
+                <div class="info-row">
+                  <dt>Estado IUCN</dt>
+                  <dd>
+                    <span style="background:${iucn.color};color:#fff;padding:0.1rem 0.4rem;border-radius:2px;font-size:0.72rem;font-family:var(--ui);font-weight:700">${r.estadoIUCN}</span>
+                    &nbsp;${iucn.label}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="info-card">
+              <div class="info-card-header">Tipografía</div>
+              <dl>
+                <div class="info-row">
+                  <dt>Nombre</dt>
+                  <dd style="font-family:${fontFamily}">${r.tipografia}</dd>
+                </div>
+                <div class="info-row"><dt>Familia</dt><dd>${r.clasificacion}</dd></div>
+                <div class="info-row"><dt>Subfamilia</dt><dd>${r.subclasificacion}</dd></div>
+              </dl>
+            </div>
+
+            <div class="qr-section">
+              <p class="content-section-label" style="justify-content:center;margin-bottom:0.5rem">Código QR</p>
+              <p style="font-size:0.68rem;color:var(--text-muted);font-family:var(--ui);margin-bottom:0.75rem">
+                Escanea para abrir esta página
+              </p>
+              <div id="qr-code"></div>
+              <p class="qr-url">${pageUrl}</p>
+            </div>
+          </aside>
+        </div>
+      </main>
+
+      <nav class="rana-nav" aria-label="Navegación entre letras">
+        ${prevLetra ? `
+          <a href="rana.html?letra=${prevLetra}" class="rana-nav-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 18l-6-6 6-6"/></svg>
+            ${prevLetra.toUpperCase()}${prevLetra.toLowerCase()} — anterior
+          </a>` : '<span></span>'}
+        <a href="index.html" class="rana-nav-btn" style="font-size:0.65rem">Ver todas</a>
+        ${nextLetra ? `
+          <a href="rana.html?letra=${nextLetra}" class="rana-nav-btn">
+            ${nextLetra.toUpperCase()}${nextLetra.toLowerCase()} — siguiente
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18l6-6-6-6"/></svg>
+          </a>` : '<span></span>'}
+      </nav>
+    `;
+
+    // Generar QR
+    setTimeout(() => {
+      const qrEl = document.getElementById("qr-code");
+      if (qrEl && typeof QRCode !== "undefined") {
+        new QRCode(qrEl, {
+          text: pageUrl, width: 132, height: 132,
+          colorDark: "#EAE8E0", colorLight: "#1C2116",
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+    }, 120);
+
+    initLightbox();
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────
+  function formatTime(secs) {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${String(s).padStart(2,"0")}`;
+  }
+
+  function buildVideoEmbed(seg) {
+    if (!seg || !seg.url) return '<div class="no-video">Video no disponible.</div>';
+
+    // Google Drive
+    const driveMatch = seg.url.match(/(?:drive\.google\.com\/file\/d\/|\/d\/)([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+      const fileId = driveMatch[1];
+      const start  = seg.inicio || 0;
+      return `<iframe src="https://drive.google.com/file/d/${fileId}/preview#t=${start}"
+        allow="autoplay" allowfullscreen title="Timelapse de ilustración"></iframe>`;
+    }
+
+    // YouTube
+    const ytMatch = seg.url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]+)/);
+    if (ytMatch) {
+      const videoId = ytMatch[1];
+      const start   = seg.inicio || 0;
+      const end     = seg.fin ? `&end=${seg.fin}` : "";
+      return `<iframe src="https://www.youtube.com/embed/${videoId}?start=${start}${end}&rel=0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen title="Timelapse de ilustración"></iframe>`;
+    }
+
+    // Video directo
+    if (seg.url.match(/\.(mp4|webm|ogg)$/i)) {
+      return `<video controls style="width:100%;height:100%;position:absolute;inset:0"
+        ${seg.inicio ? `onloadedmetadata="this.currentTime=${seg.inicio}"` : ""}>
+        <source src="${seg.url}" type="video/mp4">
+      </video>`;
+    }
+
+    return '<div class="no-video">Formato de video no reconocido.</div>';
+  }
+
+  function initLightbox() {
+    const lb      = document.getElementById("lightbox");
+    const lbImg   = document.getElementById("lightbox-img");
+    const lbClose = document.getElementById("lightbox-close");
+    if (!lb || !lbImg) return;
+    lbClose.addEventListener("click", () => lb.classList.remove("open"));
+    lb.addEventListener("click", e => { if (e.target === lb) lb.classList.remove("open"); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") lb.classList.remove("open"); });
+    window.openLightbox = (url, alt) => { lbImg.src = url; lbImg.alt = alt; lb.classList.add("open"); };
+  }
+
+  window.selectVideoTab = function(btn) {
+    document.querySelectorAll(".video-tab").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const seg = { url: btn.dataset.url, inicio: parseInt(btn.dataset.start) || 0, fin: parseInt(btn.dataset.end) || 0 };
+    document.getElementById("video-player").innerHTML = buildVideoEmbed(seg);
+  };
+
+  window.buildVideoEmbed = buildVideoEmbed;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abecedario de Anuros</title>
+  <meta name="description" content="Un catálogo tipográfico ilustrado de A a Z con 26 especies de ranas y sapos del mundo, cada una asignada a una tipografía histórica.">
+  <meta property="og:title" content="Abecedario de Anuros">
+  <meta property="og:description" content="Catálogo tipográfico ilustrado de anuros — A hasta Z, 26 especies, 26 tipografías.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="site-logo">
+    Abecedario de Anuros
+    <span>— catálogo tipográfico</span>
+  </div>
+  <nav class="site-nav">
+    <a href="#galeria">Galería</a>
+    <a href="#proyecto">Proyecto</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-bg-letter" aria-hidden="true">Aa Bb</div>
+  <div class="hero-content fade-up">
+    <p class="hero-label">A–Z · 26 especies · 26 tipografías</p>
+    <h1>Abecedario<br><em>de Anuros</em></h1>
+    <p class="hero-desc">
+      Un catálogo donde cada letra del alfabeto latino reúne una tipografía histórica 
+      y una especie de rana o sapo. Letra, forma y vida silvestre.
+    </p>
+    <a href="#galeria" class="hero-cta">Explorar el catálogo</a>
+  </div>
+</section>
+
+<div id="galeria" class="filter-bar" role="group" aria-label="Filtrar por clasificación tipográfica">
+  <button class="filter-btn active" data-filter="all">Todas</button>
+  <button class="filter-btn" data-filter="Serif Esenciales">Serif</button>
+  <button class="filter-btn" data-filter="Sans Serif Esenciales">Sans Serif</button>
+  <button class="filter-btn" data-filter="Romanas, Venecianas o Humanistas">Humanistas</button>
+  <button class="filter-btn" data-filter="Garaldas, Elzevirianas, Aldinas">Garaldas</button>
+  <button class="filter-btn" data-filter="Romanas de transición">Transición</button>
+  <button class="filter-btn" data-filter="Didonas">Didonas</button>
+  <button class="filter-btn" data-filter="Mecanas, Egipcias">Mecanas</button>
+  <button class="filter-btn" data-filter="Grotescas">Grotescas</button>
+  <button class="filter-btn" data-filter="Neogrotescas">Neogrotescas</button>
+  <button class="filter-btn" data-filter="Geométricas">Geométricas</button>
+  <button class="filter-btn" data-filter="Lineales humanistas">Lineales</button>
+</div>
+
+<main>
+  <div id="alphabet-grid" class="alphabet-grid" aria-live="polite">
+    <div class="loading-grid">
+      <div class="spinner"></div>
+      <p>Cargando el catálogo…</p>
+    </div>
+  </div>
+</main>
+
+<section id="proyecto" class="about-section">
+  <div>
+    <h2>El proyecto</h2>
+    <p>
+      <em>Abecedario de Anuros</em> nace de la intersección entre la tipografía histórica 
+      y la biodiversidad anfibia. Cada letra del alfabeto latino tiene asignada una 
+      tipografía representativa de su época y corriente estética, y una especie de anuro 
+      cuyo nombre comienza con esa letra.
+    </p>
+    <p style="margin-top:1rem">
+      Las ilustraciones fueron realizadas digitalmente —
+      la rana y la letra conviven en la misma composición, sin fondo, 
+      permitiendo que cada especie interactúe de forma natural con su tipografía. 
+      El catálogo impreso incluye códigos QR que enlazan a esta experiencia digital.
+    </p>
+  </div>
+  <div>
+    <h2>Las tipografías</h2>
+    <p>
+      La selección recorre las grandes familias tipográficas: desde las romanas venecianas 
+      del siglo XV (Apolline, Centaur) hasta las sans serif geométricas del siglo XX 
+      (Futura, Avenir, DIN), pasando por las garaldas renacentistas, las didonas 
+      neoclásicas y las egipcias industriales.
+    </p>
+    <p style="margin-top:1rem">
+      En cada página de especie, la tipografía asignada se usa para mostrar la letra, 
+      el nombre de la especie y elementos decorativos, creando una coherencia visual 
+      entre forma tipográfica y forma biológica.
+    </p>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <p class="footer-copy">© 2025 Abecedario de Anuros</p>
+  <button class="admin-trigger" id="admin-trigger" title="Administración" aria-label="Panel de administración">·</button>
+</footer>
+
+<script type="module">
+  import { initializeApp }               from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { firebaseConfig }              from "./js/firebase-config.js";
+  import { RANAS_DATA, IUCN_CONFIG }     from "./js/data.js";
+
+  let ranas = [];
+
+  async function loadRanas() {
+    try {
+      const app  = initializeApp(firebaseConfig);
+      const db   = getFirestore(app);
+      const snap = await getDocs(collection(db, "ranas"));
+      if (!snap.empty) {
+        const fsData = {};
+        snap.forEach(doc => { fsData[doc.id] = doc.data(); });
+        ranas = RANAS_DATA.map(r => ({ ...r, ...(fsData[r.letra] || {}) }));
+      } else {
+        ranas = RANAS_DATA;
+      }
+    } catch (e) {
+      console.warn("Firestore no disponible, usando datos locales:", e.message);
+      ranas = RANAS_DATA;
+    }
+    renderGrid(ranas);
+    initFilters();
+  }
+
+  function renderGrid(data) {
+    const grid = document.getElementById("alphabet-grid");
+    if (!data.length) {
+      grid.innerHTML = '<p class="loading-grid">No hay ranas para mostrar.</p>';
+      return;
+    }
+    grid.innerHTML = data.map((r, i) => {
+      const iucn   = IUCN_CONFIG[r.estadoIUCN] || IUCN_CONFIG["DD"];
+      const hasImg = r.imagenUrl && r.imagenUrl.trim() !== "";
+      return `
+        <article class="rana-card fade-up"
+          style="animation-delay:${i * 0.028}s; --card-accent:${r.colorAccent || '#7CBA5A'}"
+          data-clasificacion="${r.clasificacion}"
+          data-subclasificacion="${r.subclasificacion}"
+          onclick="window.location='rana.html?letra=${r.letra}'"
+          role="link" tabindex="0"
+          onkeydown="if(event.key==='Enter')window.location='rana.html?letra=${r.letra}'"
+          aria-label="${r.nombreComun} — letra ${r.letra.toUpperCase()}">
+          <div class="card-letter-bg" aria-hidden="true">${r.letra.toUpperCase()}</div>
+          <div class="card-frog">
+            ${hasImg
+              ? `<img src="${r.imagenUrl}" alt="Ilustración de ${r.nombreComun}" loading="lazy">`
+              : `<div class="placeholder-frog">🐸</div>`
+            }
+          </div>
+          <div class="card-info">
+            <p class="card-letra">${r.letra.toUpperCase()}${r.letra.toLowerCase()} · ${r.tipografia}</p>
+            <h2 class="card-nombre-comun">${r.nombreComun}</h2>
+            <p class="card-nombre-cientifico">${r.nombreCientifico}</p>
+            <span class="card-iucn" style="background:${iucn.color}">${r.estadoIUCN}</span>
+            <p class="card-tipografia">${r.clasificacion} · ${r.subclasificacion}</p>
+          </div>
+          <div class="card-overlay" aria-hidden="true"></div>
+        </article>
+      `;
+    }).join("");
+  }
+
+  function initFilters() {
+    document.querySelectorAll(".filter-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const f = btn.dataset.filter;
+        const filtered = f === "all" ? ranas : ranas.filter(r =>
+          r.clasificacion === f || r.subclasificacion === f
+        );
+        renderGrid(filtered);
+      });
+    });
+  }
+
+  // Admin: triple clic en el punto del footer
+  let clickCount = 0;
+  document.getElementById("admin-trigger").addEventListener("click", () => {
+    clickCount++;
+    if (clickCount >= 3) { window.location.href = "admin.html"; clickCount = 0; }
+    setTimeout(() => { clickCount = 0; }, 1500);
+  });
+
+  loadRanas();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Abecedario de Anuros</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a href="index.html" class="site-logo">← Abecedario de Anuros</a>
+  <span style="font-family:var(--ui);font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)">
+    Panel de administración
+  </span>
+</header>
+
+<div id="app" class="admin-container">
+
+  <!-- Login -->
+  <div class="admin-login-screen" id="login-screen">
+    <p style="font-size:0.62rem;font-family:var(--ui);letter-spacing:0.15em;text-transform:uppercase;color:var(--accent)">
+      Acceso restringido
+    </p>
+    <h2>Iniciar sesión para gestionar el catálogo</h2>
+    <button class="btn-google" id="btn-google-login">
+      <svg width="18" height="18" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+      </svg>
+      Continuar con Google
+    </button>
+    <p id="login-error" style="color:#cc3333;font-size:0.78rem;min-height:1.2em;font-family:var(--ui)"></p>
+  </div>
+
+  <!-- Panel admin -->
+  <div id="admin-panel" style="display:none">
+    <div class="admin-header">
+      <h1>Gestionar ranas</h1>
+      <button class="btn-logout" id="btn-logout">Cerrar sesión</button>
+    </div>
+
+    <p style="font-family:var(--ui);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.75rem">
+      Seleccionar especie
+    </p>
+    <div class="rana-select-grid" id="rana-select-grid"></div>
+
+    <div class="admin-form" id="admin-form">
+      <h2 id="form-title" style="font-size:0.95rem;font-weight:400;font-style:italic;color:var(--text-muted);margin-bottom:1.5rem"></h2>
+
+      <!-- Información básica -->
+      <div class="form-section">
+        <h3>Información básica</h3>
+        <div class="form-row">
+          <div class="form-group"><label>Nombre común</label><input type="text" id="f-nombre-comun"></div>
+          <div class="form-group"><label>Nombre científico</label><input type="text" id="f-nombre-cientifico"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Región</label><input type="text" id="f-region"></div>
+          <div class="form-group"><label>Hábitat</label><input type="text" id="f-habitat"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Tamaño</label><input type="text" id="f-tamano" placeholder="ej: 4–7 cm"></div>
+          <div class="form-group">
+            <label>Estado IUCN</label>
+            <select id="f-iucn">
+              <option value="LC">LC — Preocupación menor</option>
+              <option value="NT">NT — Casi amenazada</option>
+              <option value="VU">VU — Vulnerable</option>
+              <option value="EN">EN — En peligro</option>
+              <option value="CR">CR — En peligro crítico</option>
+              <option value="EW">EW — Extinto en estado silvestre</option>
+              <option value="EX">EX — Extinto</option>
+              <option value="DD">DD — Datos insuficientes</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Coloración</label><input type="text" id="f-coloracion"></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Color de acento (hex)</label>
+            <input type="color" id="f-color-accent" style="height:2.4rem;padding:0.2rem">
+          </div>
+          <div class="form-group">
+            <label>Link iNaturalist (opcional)</label>
+            <input type="url" id="f-inat-link" placeholder="https://www.inaturalist.org/taxa/...">
+          </div>
+        </div>
+      </div>
+
+      <!-- Textos -->
+      <div class="form-section">
+        <h3>Textos descriptivos</h3>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="f-descripcion" style="min-height:150px"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Dato curioso</label>
+          <textarea id="f-dato-curioso"></textarea>
+        </div>
+      </div>
+
+      <!-- Ilustración -->
+      <div class="form-section">
+        <h3>Ilustración</h3>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">
+          Sube la imagen a Google Drive (compartida como "Cualquiera con el enlace") o a Cloudinary y pega la URL directa aquí.
+          La imagen debe estar sin fondo (PNG con transparencia). Se mostrará sobre fondo crema.
+        </p>
+        <div class="form-group">
+          <label>URL de la ilustración (PNG sin fondo)</label>
+          <input type="url" id="f-imagen-url" placeholder="https://drive.google.com/... o https://res.cloudinary.com/...">
+        </div>
+        <div id="imagen-preview-container" style="margin-top:0.5rem;background:var(--ilustracion-bg);border-radius:4px;padding:1rem;display:flex;justify-content:center"></div>
+      </div>
+
+      <!-- Video / Timelapse -->
+      <div class="form-section">
+        <h3>Segmentos de timelapse</h3>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">
+          Pega el link de Google Drive o YouTube. El tiempo de inicio/fin es en segundos.<br>
+          Para un video dividido en etapas (boceto, lineart, pintura), agrega un segmento por etapa con sus segundos de inicio y fin.<br>
+          Para Drive: comparte el video con "Cualquiera con el enlace" en modo Visor.
+        </p>
+        <div id="video-segs-container"></div>
+        <button class="btn-add" id="btn-add-seg" type="button">+ Agregar segmento de video</button>
+      </div>
+
+      <!-- Imágenes de referencia -->
+      <div class="form-section">
+        <h3>Imágenes de referencia</h3>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">
+          URLs de fotos fotográficas de referencia (iNaturalist, Wikimedia, etc.)
+        </p>
+        <div id="ref-imgs-container"></div>
+        <button class="btn-add" id="btn-add-ref-img" type="button">+ Agregar imagen de referencia</button>
+      </div>
+
+      <!-- Referencias APA -->
+      <div class="form-section">
+        <h3>Referencias bibliográficas (APA 7.ª edición)</h3>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">
+          Todas las referencias tienen la misma importancia tipográfica en la página.
+        </p>
+        <div id="refs-container"></div>
+        <button class="btn-add" id="btn-add-ref" type="button">+ Agregar referencia</button>
+      </div>
+
+      <button class="btn-save" id="btn-save">Guardar cambios</button>
+      <p class="save-status" id="save-status"></p>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { firebaseConfig, ADMIN_EMAILS } from "./js/firebase-config.js";
+  import { RANAS_DATA } from "./js/data.js";
+
+  const app      = initializeApp(firebaseConfig);
+  const db       = getFirestore(app);
+  const auth     = getAuth(app);
+  const provider = new GoogleAuthProvider();
+  const LETRAS   = "abcdefghijklmnopqrstuvwxyz".split("");
+  let currentLetra = null;
+
+  // ── Auth ────────────────────────────────────────────────────────
+  onAuthStateChanged(auth, user => {
+    if (user && ADMIN_EMAILS.includes(user.email)) {
+      showPanel();
+    } else if (user) {
+      signOut(auth);
+      document.getElementById("login-error").textContent =
+        `El correo ${user.email} no tiene acceso de administrador.`;
+    } else {
+      showLogin();
+    }
+  });
+
+  document.getElementById("btn-google-login").addEventListener("click", async () => {
+    try { await signInWithPopup(auth, provider); }
+    catch (e) { document.getElementById("login-error").textContent = "Error al iniciar sesión: " + e.message; }
+  });
+  document.getElementById("btn-logout").addEventListener("click", () => signOut(auth));
+
+  function showLogin() {
+    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById("admin-panel").style.display  = "none";
+  }
+  function showPanel() {
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("admin-panel").style.display  = "block";
+    renderLetterGrid();
+  }
+
+  // ── Grid de letras ───────────────────────────────────────────────
+  function renderLetterGrid() {
+    const grid = document.getElementById("rana-select-grid");
+    grid.innerHTML = LETRAS.map(l => {
+      const r = RANAS_DATA.find(x => x.letra === l);
+      return `<button class="rana-select-btn" data-letra="${l}"
+        title="${r?.nombreComun || l.toUpperCase()}"
+        onclick="selectLetra('${l}')">${l.toUpperCase()}</button>`;
+    }).join("");
+  }
+
+  window.selectLetra = async function(letra) {
+    currentLetra = letra;
+    document.querySelectorAll(".rana-select-btn").forEach(b => b.classList.remove("active"));
+    document.querySelector(`[data-letra="${letra}"]`).classList.add("active");
+
+    const base = RANAS_DATA.find(r => r.letra === letra);
+    let data = { ...base };
+    try {
+      const snap = await getDoc(doc(db, "ranas", letra));
+      if (snap.exists()) {
+        data = { ...data, ...snap.data() };
+        document.querySelector(`[data-letra="${letra}"]`).classList.add("has-data");
+      }
+    } catch (e) { console.warn(e); }
+
+    populateForm(data);
+    document.getElementById("admin-form").classList.add("visible");
+    document.getElementById("form-title").textContent =
+      `${letra.toUpperCase()}${letra} — ${data.nombreComun} (${data.nombreCientifico})`;
+    document.getElementById("admin-form").scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // ── Rellenar formulario ──────────────────────────────────────────
+  function populateForm(d) {
+    const g = id => document.getElementById(id);
+    g("f-nombre-comun").value      = d.nombreComun || "";
+    g("f-nombre-cientifico").value = d.nombreCientifico || "";
+    g("f-region").value            = d.region || "";
+    g("f-habitat").value           = d.habitat || "";
+    g("f-tamano").value            = d.tamano || "";
+    g("f-iucn").value              = d.estadoIUCN || "LC";
+    g("f-coloracion").value        = d.coloracion || "";
+    g("f-color-accent").value      = d.colorAccent || "#7CBA5A";
+    g("f-inat-link").value         = d.inatLink || "";
+    g("f-descripcion").value       = d.descripcion || "";
+    g("f-dato-curioso").value      = d.datoCurioso || "";
+    g("f-imagen-url").value        = d.imagenUrl || "";
+    updateImagePreview(d.imagenUrl || "");
+    renderVideoSegs(d.videoSegmentos || []);
+    renderRefImgs(d.imagenesReferencia || []);
+    renderRefs(d.referencias || []);
+    g("save-status").textContent = "";
+  }
+
+  // ── Preview ilustración ──────────────────────────────────────────
+  document.getElementById("f-imagen-url").addEventListener("input", e => updateImagePreview(e.target.value));
+  function updateImagePreview(url) {
+    const c = document.getElementById("imagen-preview-container");
+    if (url && url.startsWith("http")) {
+      c.innerHTML = `<img src="${url}" style="max-width:180px;max-height:180px;object-fit:contain;border-radius:4px"
+        alt="Preview" onerror="this.style.display='none'">`;
+    } else { c.innerHTML = ""; }
+  }
+
+  // ── Video segmentos ──────────────────────────────────────────────
+  function renderVideoSegs(segs) {
+    document.getElementById("video-segs-container").innerHTML =
+      segs.map((s, i) => buildSegHTML(i, s)).join("");
+  }
+  function buildSegHTML(i, s = {}) {
+    return `<div class="seg-item" id="seg-${i}">
+      <button type="button" class="btn-remove-ref" onclick="removeSeg(${i})">×</button>
+      <div class="form-row">
+        <div class="form-group">
+          <label>URL del video (Drive o YouTube)</label>
+          <input type="url" id="seg-url-${i}" value="${s.url||''}" placeholder="https://drive.google.com/file/d/...">
+        </div>
+        <div class="form-group">
+          <label>Etiqueta del segmento</label>
+          <input type="text" id="seg-etiqueta-${i}" value="${s.etiqueta||''}" placeholder="ej: Boceto, Lineart, Pintura…">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Inicio (segundos)</label>
+          <input type="number" id="seg-inicio-${i}" value="${s.inicio||0}" min="0">
+        </div>
+        <div class="form-group">
+          <label>Fin (segundos, 0 = hasta el final)</label>
+          <input type="number" id="seg-fin-${i}" value="${s.fin||0}" min="0">
+        </div>
+      </div>
+    </div>`;
+  }
+  document.getElementById("btn-add-seg").addEventListener("click", () => {
+    const c = document.getElementById("video-segs-container");
+    c.insertAdjacentHTML("beforeend", buildSegHTML(Date.now()));
+  });
+  window.removeSeg = id => document.getElementById(`seg-${id}`)?.remove();
+
+  // ── Imágenes de referencia ───────────────────────────────────────
+  function renderRefImgs(imgs) {
+    document.getElementById("ref-imgs-container").innerHTML =
+      imgs.map((img, i) => buildRefImgHTML(i, img)).join("");
+  }
+  function buildRefImgHTML(i, img = {}) {
+    return `<div class="ref-item" id="refimg-${i}">
+      <button type="button" class="btn-remove-ref" onclick="removeRefImg(${i})">×</button>
+      <div class="form-row">
+        <div class="form-group">
+          <label>URL de la imagen</label>
+          <input type="url" id="refimg-url-${i}" value="${img.url||''}" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label>Descripción / crédito</label>
+          <input type="text" id="refimg-caption-${i}" value="${img.caption||''}">
+        </div>
+      </div>
+    </div>`;
+  }
+  document.getElementById("btn-add-ref-img").addEventListener("click", () => {
+    const c = document.getElementById("ref-imgs-container");
+    c.insertAdjacentHTML("beforeend", buildRefImgHTML(Date.now()));
+  });
+  window.removeRefImg = id => document.getElementById(`refimg-${id}`)?.remove();
+
+  // ── Referencias APA ──────────────────────────────────────────────
+  function renderRefs(refs) {
+    document.getElementById("refs-container").innerHTML =
+      refs.map((ref, i) => buildRefHTML(i, ref)).join("");
+  }
+  function buildRefHTML(i, ref = {}) {
+    return `<div class="ref-item" id="ref-${i}">
+      <button type="button" class="btn-remove-ref" onclick="removeRef(${i})">×</button>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Autor(es)</label>
+          <input type="text" id="ref-autor-${i}" value="${ref.autor||''}">
+        </div>
+        <div class="form-group">
+          <label>Año</label>
+          <input type="number" id="ref-año-${i}" value="${ref.año||''}" min="1800" max="2099">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Título</label>
+        <input type="text" id="ref-titulo-${i}" value="${ref.titulo||''}">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Editorial / Revista</label>
+          <input type="text" id="ref-editorial-${i}" value="${ref.editorial||''}">
+        </div>
+        <div class="form-group">
+          <label>Lugar de publicación</label>
+          <input type="text" id="ref-lugar-${i}" value="${ref.lugar||''}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Volumen</label>
+          <input type="text" id="ref-vol-${i}" value="${ref.volumen||''}">
+        </div>
+        <div class="form-group">
+          <label>Páginas</label>
+          <input type="text" id="ref-pags-${i}" value="${ref.paginas||''}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>URL / DOI</label>
+        <input type="url" id="ref-url-${i}" value="${ref.url||''}">
+      </div>
+    </div>`;
+  }
+  document.getElementById("btn-add-ref").addEventListener("click", () => {
+    const c = document.getElementById("refs-container");
+    c.insertAdjacentHTML("beforeend", buildRefHTML(Date.now()));
+  });
+  window.removeRef = id => document.getElementById(`ref-${id}`)?.remove();
+
+  // ── Guardar en Firestore ─────────────────────────────────────────
+  document.getElementById("btn-save").addEventListener("click", async () => {
+    if (!currentLetra) return;
+    const btn    = document.getElementById("btn-save");
+    const status = document.getElementById("save-status");
+    btn.disabled = true;
+    status.textContent  = "Guardando…";
+    status.className    = "save-status";
+
+    try {
+      const g = id => document.getElementById(id);
+
+      const segs = [...document.querySelectorAll("[id^='seg-url-']")].map(el => {
+        const i = el.id.replace("seg-url-", "");
+        return {
+          url:      el.value,
+          etiqueta: (g(`seg-etiqueta-${i}`) || {}).value || "",
+          inicio:   parseInt((g(`seg-inicio-${i}`) || {}).value) || 0,
+          fin:      parseInt((g(`seg-fin-${i}`)    || {}).value) || 0,
+        };
+      }).filter(s => s.url);
+
+      const refImgs = [...document.querySelectorAll("[id^='refimg-url-']")].map(el => {
+        const i = el.id.replace("refimg-url-", "");
+        return { url: el.value, caption: (g(`refimg-caption-${i}`) || {}).value || "" };
+      }).filter(img => img.url);
+
+      const refs = [...document.querySelectorAll("[id^='ref-autor-']")].map(el => {
+        const i = el.id.replace("ref-autor-", "");
+        return {
+          autor:     el.value,
+          año:       parseInt((g(`ref-año-${i}`)       || {}).value) || null,
+          titulo:    (g(`ref-titulo-${i}`)    || {}).value || "",
+          editorial: (g(`ref-editorial-${i}`) || {}).value || "",
+          lugar:     (g(`ref-lugar-${i}`)     || {}).value || "",
+          volumen:   (g(`ref-vol-${i}`)       || {}).value || "",
+          paginas:   (g(`ref-pags-${i}`)      || {}).value || "",
+          url:       (g(`ref-url-${i}`)       || {}).value || "",
+        };
+      }).filter(r => r.autor || r.titulo);
+
+      const data = {
+        nombreComun:        g("f-nombre-comun").value,
+        nombreCientifico:   g("f-nombre-cientifico").value,
+        region:             g("f-region").value,
+        habitat:            g("f-habitat").value,
+        tamano:             g("f-tamano").value,
+        estadoIUCN:         g("f-iucn").value,
+        coloracion:         g("f-coloracion").value,
+        colorAccent:        g("f-color-accent").value,
+        inatLink:           g("f-inat-link").value,
+        descripcion:        g("f-descripcion").value,
+        datoCurioso:        g("f-dato-curioso").value,
+        imagenUrl:          g("f-imagen-url").value,
+        videoSegmentos:     segs,
+        imagenesReferencia: refImgs,
+        referencias:        refs,
+      };
+
+      await setDoc(doc(db, "ranas", currentLetra), data, { merge: true });
+      status.textContent = "✓ Guardado correctamente";
+      status.className   = "save-status success";
+      document.querySelector(`[data-letra="${currentLetra}"]`)?.classList.add("has-data");
+    } catch (e) {
+      status.textContent = "Error al guardar: " + e.message;
+      status.className   = "save-status error";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+
+</body>
+</html>
