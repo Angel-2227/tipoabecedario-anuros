@@ -57,7 +57,10 @@
     try {
       const app  = initializeApp(firebaseConfig);
       const db   = getFirestore(app);
-      const snap = await getDoc(doc(db, "ranas", letra));
+      const timeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 6000)
+      );
+      const snap = await Promise.race([getDoc(doc(db, "ranas", letra)), timeout]);
       if (snap.exists()) rana = { ...rana, ...snap.data() };
     } catch (e) { console.warn("Firestore no disponible:", e.message); }
     renderRana(rana, idx);
@@ -135,35 +138,31 @@
 
     // ── Imágenes de referencia ──
     const refImages  = r.imagenesReferencia || [];
+    function buildRefImgHTML(img) {
+      const u = (img.url || "").replace(/&/g,"&amp;").replace(/"/g,"&quot;");
+      const c = (img.caption || "").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+      return '<div class="ref-image-item" onclick="openLightbox(\'' + u + '\',\'' + c + '\')">'
+        + '<img src="' + u + '" alt="' + (c || 'Imagen de referencia') + '" loading="lazy">'
+        + (img.caption ? '<p class="ref-image-caption">' + img.caption + '</p>' : '')
+        + '</div>';
+    }
     const refImgHTML = refImages.length > 0 ? `
       <div class="content-section">
         <p class="content-section-label">Imágenes de referencia</p>
         <div class="ref-images-grid">
-          ${refImages.map(img => `
-            <div class="ref-image-item" onclick="openLightbox('${img.url}','${(img.caption||'').replace(/'/g,'\\'')}')">
-              <img src="${img.url}" alt="${img.caption || 'Imagen de referencia'}" loading="lazy">
-              ${img.caption ? `<p class="ref-image-caption">${img.caption}</p>` : ""}
-            </div>`).join("")}
+          ${refImages.map(buildRefImgHTML).join("")}
         </div>
       </div>` : "";
 
     // ── Referencias APA ──
-    const referencias = r.referencias || [];
-    const refAPAHTML  = referencias.length > 0 ? `
+    const refTexto = (r.referenciasTexto || "").trim();
+    const refAPAHTML = refTexto ? `
       <div class="content-section">
         <p class="content-section-label">Referencias</p>
         <ul class="referencias-list">
-          ${referencias.map(ref => {
-            const partes = [];
-            if (ref.autor)    partes.push(`<span class="ref-autor">${ref.autor}</span>`);
-            if (ref.año)      partes.push(`(${ref.año})`);
-            if (ref.titulo)   partes.push(`<span class="ref-titulo">${ref.titulo}</span>`);
-            if (ref.editorial)partes.push(`<span class="ref-fuente">${ref.editorial}</span>`);
-            if (ref.lugar)    partes.push(`<span class="ref-fuente">${ref.lugar}</span>`);
-            if (ref.volumen)  partes.push(`<span class="ref-fuente">vol. ${ref.volumen}</span>`);
-            if (ref.paginas)  partes.push(`<span class="ref-fuente">pp. ${ref.paginas}</span>`);
-            return `<li>${partes.join(". ")}.${ref.url ? ` <a href="${ref.url}" target="_blank" rel="noopener">${ref.url}</a>` : ""}</li>`;
-          }).join("")}
+          ${refTexto.split("\n").filter(l => l.trim()).map(l =>
+            `<li>${l.trim()}</li>`
+          ).join("")}
         </ul>
       </div>` : "";
 
@@ -200,10 +199,11 @@
           <div class="tipo-display">
             <p class="tipo-display-label">Tipografía asignada</p>
             <p class="tipo-display-sample" style="font-family:${fontFamily}">
-              ${r.letra.toUpperCase()}${r.letra.toLowerCase()} &nbsp; Aa Bb
-            </p>
-            <p class="tipo-display-name">${r.tipografia}</p>
+              <p class="tipo-display-name">${r.tipografia}</p>
             <p class="tipo-display-sub">${r.clasificacion} · ${r.subclasificacion}</p>
+              ${r.letra.toUpperCase()}${r.letra.toLowerCase()} &nbsp; Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz
+            </p>
+            
           </div>
         </div>
 

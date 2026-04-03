@@ -148,10 +148,12 @@
       <div class="form-section">
         <h3>Referencias bibliográficas (APA 7.ª edición)</h3>
         <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">
-          Todas las referencias tienen la misma importancia tipográfica en la página.
+          Pega las referencias ya formateadas, una por línea. Se mostrarán tal cual en la página.
         </p>
-        <div id="refs-container"></div>
-        <button class="btn-add" id="btn-add-ref" type="button">+ Agregar referencia</button>
+        <div class="form-group">
+          <label>Referencias (una por línea)</label>
+          <textarea id="f-referencias-texto" style="min-height:180px;font-size:0.8rem" placeholder="Apellido, N. (año). Título del trabajo. Editorial. https://doi.org/..."></textarea>
+        </div>
       </div>
 
       <button class="btn-save" id="btn-save">Guardar cambios</button>
@@ -255,7 +257,7 @@
     updateImagePreview(d.imagenUrl || "");
     renderVideoSegs(d.videoSegmentos || []);
     renderRefImgs(d.imagenesReferencia || []);
-    renderRefs(d.referencias || []);
+    g("f-referencias-texto").value = d.referenciasTexto || "";
     g("save-status").textContent = "";
   }
 
@@ -331,59 +333,7 @@
   });
   window.removeRefImg = id => document.getElementById(`refimg-${id}`)?.remove();
 
-  // ── Referencias APA ──────────────────────────────────────────────
-  function renderRefs(refs) {
-    document.getElementById("refs-container").innerHTML =
-      refs.map((ref, i) => buildRefHTML(i, ref)).join("");
-  }
-  function buildRefHTML(i, ref = {}) {
-    return `<div class="ref-item" id="ref-${i}">
-      <button type="button" class="btn-remove-ref" onclick="removeRef(${i})">×</button>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Autor(es)</label>
-          <input type="text" id="ref-autor-${i}" value="${ref.autor||''}">
-        </div>
-        <div class="form-group">
-          <label>Año</label>
-          <input type="number" id="ref-año-${i}" value="${ref.año||''}" min="1800" max="2099">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Título</label>
-        <input type="text" id="ref-titulo-${i}" value="${ref.titulo||''}">
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Editorial / Revista</label>
-          <input type="text" id="ref-editorial-${i}" value="${ref.editorial||''}">
-        </div>
-        <div class="form-group">
-          <label>Lugar de publicación</label>
-          <input type="text" id="ref-lugar-${i}" value="${ref.lugar||''}">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Volumen</label>
-          <input type="text" id="ref-vol-${i}" value="${ref.volumen||''}">
-        </div>
-        <div class="form-group">
-          <label>Páginas</label>
-          <input type="text" id="ref-pags-${i}" value="${ref.paginas||''}">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>URL / DOI</label>
-        <input type="url" id="ref-url-${i}" value="${ref.url||''}">
-      </div>
-    </div>`;
-  }
-  document.getElementById("btn-add-ref").addEventListener("click", () => {
-    const c = document.getElementById("refs-container");
-    c.insertAdjacentHTML("beforeend", buildRefHTML(Date.now()));
-  });
-  window.removeRef = id => document.getElementById(`ref-${id}`)?.remove();
+  // ── Referencias APA — texto libre ─────────────────────────────────
 
   // ── Guardar en Firestore ─────────────────────────────────────────
   document.getElementById("btn-save").addEventListener("click", async () => {
@@ -412,19 +362,7 @@
         return { url: el.value, caption: (g(`refimg-caption-${i}`) || {}).value || "" };
       }).filter(img => img.url);
 
-      const refs = [...document.querySelectorAll("[id^='ref-autor-']")].map(el => {
-        const i = el.id.replace("ref-autor-", "");
-        return {
-          autor:     el.value,
-          año:       parseInt((g(`ref-año-${i}`)       || {}).value) || null,
-          titulo:    (g(`ref-titulo-${i}`)    || {}).value || "",
-          editorial: (g(`ref-editorial-${i}`) || {}).value || "",
-          lugar:     (g(`ref-lugar-${i}`)     || {}).value || "",
-          volumen:   (g(`ref-vol-${i}`)       || {}).value || "",
-          paginas:   (g(`ref-pags-${i}`)      || {}).value || "",
-          url:       (g(`ref-url-${i}`)       || {}).value || "",
-        };
-      }).filter(r => r.autor || r.titulo);
+      const refsTexto = g("f-referencias-texto").value.trim();
 
       const data = {
         nombreComun:        g("f-nombre-comun").value,
@@ -441,7 +379,7 @@
         imagenUrl:          g("f-imagen-url").value,
         videoSegmentos:     segs,
         imagenesReferencia: refImgs,
-        referencias:        refs,
+        referenciasTexto:   refsTexto,
       };
 
       await setDoc(doc(db, "ranas", currentLetra), data, { merge: true });
