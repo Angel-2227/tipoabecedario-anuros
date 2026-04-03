@@ -12,139 +12,187 @@
   <link rel="stylesheet" href="css/admin.css">
 
   <style>
-    /* ── Font Picker Modal ─────────────────────────────────────────── */
+    /* ── Modal de fuente ────────────────────────────────────────────── */
     .font-modal-backdrop {
       display: none; position: fixed; inset: 0; z-index: 500;
-      background: rgba(0,0,0,0.82); backdrop-filter: blur(12px);
+      background: rgba(0,0,0,0.85); backdrop-filter: blur(14px);
     }
-    .font-modal-backdrop.open { display: flex; align-items: center; justify-content: center; }
-
+    .font-modal-backdrop.open {
+      display: flex; align-items: center; justify-content: center;
+    }
     .font-modal {
       background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 8px; width: min(860px, 96vw);
-      max-height: 88vh; display: flex; flex-direction: column;
-      box-shadow: 0 24px 64px rgba(0,0,0,0.6);
+      border-radius: 10px; width: min(700px, 96vw);
+      max-height: 90vh; display: flex; flex-direction: column;
+      box-shadow: 0 28px 72px rgba(0,0,0,0.65);
     }
     .font-modal-header {
-      padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+      padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between; gap: 1rem;
       flex-shrink: 0;
     }
     .font-modal-header h3 {
-      font-size: 0.7rem; font-family: var(--ui);
+      font-family: var(--ui); font-size: 0.68rem;
       letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent);
     }
     .font-modal-close {
       background: none; border: none; color: var(--text-muted);
-      font-size: 1.4rem; cursor: pointer; line-height: 1; padding: 0.2rem;
+      font-size: 1.5rem; cursor: pointer; line-height: 1; padding: 0.2rem;
       transition: color var(--transition);
     }
     .font-modal-close:hover { color: var(--text); }
 
-    .font-modal-search {
-      padding: 0.9rem 1.5rem; border-bottom: 1px solid var(--border); flex-shrink: 0;
-    }
-    .font-modal-search input {
-      width: 100%; background: var(--surface); border: 1px solid var(--border);
-      color: var(--text); padding: 0.55rem 1rem; border-radius: var(--radius);
-      font-family: var(--ui); font-size: 0.82rem;
-    }
-    .font-modal-search input:focus { outline: none; border-color: var(--accent); }
+    .font-modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
 
-    .font-modal-preview-text {
-      padding: 0.6rem 1.5rem; border-bottom: 1px solid var(--border); flex-shrink: 0;
-      display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;
+    /* ── Zona de arrastre / selección de archivo ── */
+    .font-drop-zone {
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      padding: 2.5rem 1.5rem; text-align: center; cursor: pointer;
+      transition: all var(--transition); position: relative;
+      background: var(--surface);
     }
-    .font-modal-preview-text span {
-      font-family: var(--ui); font-size: 0.6rem;
-      letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted);
+    .font-drop-zone:hover,
+    .font-drop-zone.drag-over {
+      border-color: var(--accent); background: var(--accent-dim);
     }
-    .preview-text-btn {
-      font-family: var(--ui); font-size: 0.68rem; padding: 0.25rem 0.65rem;
+    .font-drop-zone input[type=file] {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      opacity: 0; cursor: pointer;
+    }
+    .font-drop-icon { font-size: 2.2rem; margin-bottom: 0.75rem; opacity: 0.5; }
+    .font-drop-title {
+      font-family: var(--ui); font-size: 0.72rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--text-muted); margin-bottom: 0.4rem;
+    }
+    .font-drop-hint {
+      font-size: 0.8rem; color: var(--text-faint); font-style: italic;
+    }
+    .font-drop-accepted { margin-top: 0.6rem; font-size: 0.72rem; color: var(--text-faint); font-family: var(--ui); }
+
+    /* ── Vista previa de la fuente cargada ── */
+    .font-preview-box {
+      display: none; margin-top: 1.5rem;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      overflow: hidden; background: var(--surface);
+    }
+    .font-preview-box.visible { display: block; }
+    .font-preview-header {
+      padding: 0.7rem 1.1rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+    }
+    .font-preview-name {
+      font-family: var(--ui); font-size: 0.65rem;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+      flex: 1;
+    }
+    .font-preview-size {
+      font-family: var(--ui); font-size: 0.6rem; color: var(--text-faint);
+    }
+    .font-preview-display {
+      padding: 1.5rem 1.25rem;
+    }
+    .font-preview-big {
+      font-size: 4rem; line-height: 1.1; letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+    .font-preview-alphabet {
+      font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 0.5rem;
+    }
+    .font-preview-nums {
+      font-size: 1.1rem; color: var(--text-muted);
+    }
+    .font-preview-inputs {
+      padding: 0 1.25rem 1.25rem;
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+    }
+    .preview-size-btn {
+      font-family: var(--ui); font-size: 0.62rem; padding: 0.22rem 0.65rem;
       border: 1px solid var(--border); border-radius: 100px;
       background: transparent; color: var(--text-muted); cursor: pointer;
       transition: all var(--transition);
     }
-    .preview-text-btn.active, .preview-text-btn:hover {
-      border-color: var(--accent); color: var(--accent); background: var(--accent-dim);
-    }
+    .preview-size-btn.active,
+    .preview-size-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 
-    .font-grid {
-      overflow-y: auto; padding: 1rem 1.5rem;
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 0.6rem;
+    /* ── Itálica (segunda zona) ── */
+    .italic-section {
+      margin-top: 1.25rem;
     }
-    .font-item {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 1rem;
-      cursor: pointer; transition: all var(--transition);
-      display: flex; flex-direction: column; gap: 0.4rem;
+    .italic-section-label {
+      font-family: var(--ui); font-size: 0.62rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.6rem;
     }
-    .font-item:hover { border-color: var(--border-hover); background: var(--surface2); }
-    .font-item.selected { border-color: var(--accent); background: var(--accent-dim); }
-    .font-item-preview {
-      font-size: 1.85rem; line-height: 1.15; color: var(--text);
-      min-height: 2.4rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    .font-drop-zone.italic-zone { padding: 1.5rem; }
+    .italic-preview-box {
+      display: none; margin-top: 0.75rem;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.25rem; background: var(--surface);
     }
-    .font-item-name {
-      font-family: var(--ui); font-size: 0.58rem;
-      letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted);
-    }
-    .font-item-styles {
-      font-family: var(--ui); font-size: 0.55rem; color: var(--text-faint);
-    }
+    .italic-preview-box.visible { display: block; }
+    .italic-preview-sample { font-size: 2rem; font-style: italic; line-height: 1.2; }
 
+    /* ── Footer ── */
     .font-modal-footer {
       padding: 1rem 1.5rem; border-top: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between; gap: 1rem;
       flex-shrink: 0;
     }
-    .font-selected-preview {
-      font-family: var(--ui); font-size: 0.72rem; color: var(--text-muted);
-      flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    .font-status-label {
+      font-family: var(--ui); font-size: 0.7rem; color: var(--text-muted); flex: 1;
     }
-    .font-selected-preview strong { color: var(--accent); }
+    .font-status-label strong { color: var(--accent); }
     .btn-font-confirm {
       font-family: var(--ui); font-size: 0.68rem; letter-spacing: 0.1em;
       text-transform: uppercase; background: var(--accent); color: #000;
       border: none; padding: 0.65rem 1.5rem; border-radius: var(--radius);
       cursor: pointer; transition: background var(--transition); font-weight: 700;
     }
-    .btn-font-confirm:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-font-confirm:disabled { opacity: 0.35; cursor: not-allowed; }
     .btn-font-confirm:not(:disabled):hover { background: var(--accent2); }
 
-    .font-loading { padding: 3rem; text-align: center; color: var(--text-muted); font-style: italic; font-size: 0.88rem; }
-    .font-error   { padding: 2rem; text-align: center; color: #cc6644; font-size: 0.82rem; font-family: var(--ui); line-height: 1.7; }
-
-    /* ── Tabla de tipografías ──────────────────────────────────────── */
+    /* ── Tabla de tipografías ─────────────────────────────────────── */
     .font-manager-section {
       margin-bottom: 2.5rem; padding: 1.4rem;
       border: 1px solid var(--border); border-radius: var(--radius);
       background: var(--surface);
     }
     .font-manager-section h3 {
-      font-size: 0.65rem; font-family: var(--ui);
+      font-family: var(--ui); font-size: 0.65rem;
       letter-spacing: 0.15em; text-transform: uppercase;
-      color: var(--accent); margin-bottom: 1.2rem;
+      color: var(--accent); margin-bottom: 0.75rem;
     }
-    .font-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+    .font-manager-desc {
+      font-size: 0.8rem; color: var(--text-muted); font-style: italic;
+      line-height: 1.7; margin-bottom: 1.25rem;
+    }
+    .font-table { width: 100%; border-collapse: collapse; }
     .font-table th {
       font-family: var(--ui); font-size: 0.58rem; letter-spacing: 0.12em;
       text-transform: uppercase; color: var(--text-muted); text-align: left;
       padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border);
     }
-    .font-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.8rem; vertical-align: middle; }
+    .font-table td {
+      padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border);
+      font-size: 0.82rem; vertical-align: middle;
+    }
     .font-table tr:last-child td { border-bottom: none; }
-    .font-table .col-letra  { font-family: var(--ui); font-size: 0.6rem; letter-spacing: 0.1em; color: var(--accent); font-weight: 700; text-transform: uppercase; }
-    .font-table .col-sample { font-size: 1.4rem; line-height: 1; }
-    .font-table .col-name   { font-family: var(--ui); font-size: 0.72rem; color: var(--text); }
-    .font-table .badge-hosted { display: inline-flex; align-items: center; gap: 0.3rem; font-family: var(--ui); font-size: 0.6rem; padding: 0.18rem 0.55rem; border-radius: 100px; }
+    .col-letra { font-family: var(--ui); font-size: 0.62rem; letter-spacing: 0.1em; color: var(--accent); font-weight: 700; text-transform: uppercase; }
+    .col-sample { font-size: 1.5rem; line-height: 1; }
+    .col-name { font-family: var(--ui); font-size: 0.72rem; }
+    .badge-hosted {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      font-family: var(--ui); font-size: 0.6rem; letter-spacing: 0.05em;
+      padding: 0.18rem 0.6rem; border-radius: 100px;
+    }
     .badge-yes { background: var(--accent-dim); color: var(--accent); }
     .badge-no  { background: rgba(255,255,255,0.04); color: var(--text-muted); }
     .btn-table-action {
-      font-family: var(--ui); font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase;
-      background: none; border: 1px solid var(--border); color: var(--text-muted);
-      padding: 0.28rem 0.7rem; border-radius: var(--radius); cursor: pointer; transition: all var(--transition);
+      font-family: var(--ui); font-size: 0.6rem; letter-spacing: 0.08em;
+      text-transform: uppercase; background: none;
+      border: 1px solid var(--border); color: var(--text-muted);
+      padding: 0.28rem 0.75rem; border-radius: var(--radius);
+      cursor: pointer; transition: all var(--transition);
     }
     .btn-table-action:hover { border-color: var(--accent); color: var(--accent); }
     .btn-table-action:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -152,43 +200,86 @@
 </head>
 <body>
 
-<!-- ══ Modal font picker ═══════════════════════════════════════════ -->
+<!-- ══ Modal selector de fuente ════════════════════════════════════ -->
 <div class="font-modal-backdrop" id="font-modal-backdrop">
-  <div class="font-modal" role="dialog" aria-modal="true">
+  <div class="font-modal" role="dialog" aria-modal="true" aria-labelledby="font-modal-title">
+
     <div class="font-modal-header">
-      <h3>Explorar fuentes del sistema</h3>
-      <button class="font-modal-close" id="font-modal-close">×</button>
+      <h3 id="font-modal-title">Subir fuente — <span id="font-modal-subtitle"></span></h3>
+      <button class="font-modal-close" id="font-modal-close" aria-label="Cerrar">×</button>
     </div>
-    <div class="font-modal-search">
-      <input type="text" id="font-search-input" placeholder="Buscar fuente…" autocomplete="off" spellcheck="false">
-    </div>
-    <div class="font-modal-preview-text">
-      <span>Muestra:</span>
-      <button class="preview-text-btn active" data-text="Aa Bb Cc">Aa Bb Cc</button>
-      <button class="preview-text-btn" data-text="0123456789">0–9</button>
-      <button class="preview-text-btn" data-text="Rana Árbol">Rana Árbol</button>
-      <button class="preview-text-btn" data-text="AaBbCcDdEeFfGgHh">Alfabeto</button>
-    </div>
-    <div class="font-grid" id="font-grid">
-      <div class="font-loading">Cargando fuentes del sistema…</div>
-    </div>
+
+    <div class="font-modal-body">
+
+      <!-- Regular -->
+      <p class="italic-section-label" style="margin-bottom:0.6rem">Archivo regular (obligatorio)</p>
+      <div class="font-drop-zone" id="drop-regular">
+        <input type="file" id="input-regular" accept=".otf,.ttf,.woff,.woff2" tabindex="0">
+        <div class="font-drop-icon">🔤</div>
+        <p class="font-drop-title">Haz clic aquí o arrastra el archivo</p>
+        <p class="font-drop-hint">Busca en tu computador el archivo de la fuente regular</p>
+        <p class="font-drop-accepted">Formatos aceptados: .otf · .ttf · .woff · .woff2</p>
+      </div>
+
+      <div class="font-preview-box" id="preview-regular">
+        <div class="font-preview-header">
+          <span class="font-preview-name" id="preview-regular-name"></span>
+          <span class="font-preview-size" id="preview-regular-size"></span>
+          <div style="display:flex;gap:0.4rem">
+            <button class="preview-size-btn active" data-size="4rem">Grande</button>
+            <button class="preview-size-btn" data-size="2rem">Medio</button>
+            <button class="preview-size-btn" data-size="1rem">Pequeño</button>
+          </div>
+        </div>
+        <div class="font-preview-display">
+          <div class="font-preview-big" id="preview-big" style="font-family:'__font_preview_regular'">Aa Bb Rr</div>
+          <div class="font-preview-alphabet" style="font-family:'__font_preview_regular'">A B C D E F G H I J K L M N Ñ O P Q R S T U V W X Y Z</div>
+          <div class="font-preview-alphabet" style="font-family:'__font_preview_regular'">a b c d e f g h i j k l m n ñ o p q r s t u v w x y z</div>
+          <div class="font-preview-nums" style="font-family:'__font_preview_regular'">0 1 2 3 4 5 6 7 8 9  .,;:!?—&</div>
+        </div>
+      </div>
+
+      <!-- Itálica -->
+      <div class="italic-section">
+        <p class="italic-section-label">Archivo itálica (opcional)</p>
+        <div class="font-drop-zone italic-zone" id="drop-italic">
+          <input type="file" id="input-italic" accept=".otf,.ttf,.woff,.woff2" tabindex="0">
+          <p class="font-drop-title" style="font-style:italic">Haz clic aquí o arrastra el archivo itálico</p>
+          <p class="font-drop-hint">Si la fuente tiene un archivo de itálica separado, súbelo aquí</p>
+        </div>
+
+        <div class="italic-preview-box" id="preview-italic">
+          <p class="font-preview-name" id="preview-italic-name" style="margin-bottom:0.5rem"></p>
+          <div class="italic-preview-sample" style="font-family:'__font_preview_italic'">
+            Aa Bb Cc — La rana árbol de ojos rojos
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /body -->
+
     <div class="font-modal-footer">
-      <p class="font-selected-preview" id="font-selected-label">Ninguna fuente seleccionada</p>
-      <button class="btn-font-confirm" id="btn-font-confirm" disabled>Guardar fuente →</button>
+      <p class="font-status-label" id="font-status-label">Selecciona al menos el archivo regular para continuar.</p>
+      <button class="btn-font-confirm" id="btn-font-confirm" disabled>Guardar en la nube →</button>
     </div>
+
   </div>
 </div>
 
 <header class="site-header">
   <a href="index.html" class="site-logo">← Abecedario de Anuros</a>
-  <span style="font-family:var(--ui);font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)">Panel de administración</span>
+  <span style="font-family:var(--ui);font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted)">
+    Panel de administración
+  </span>
 </header>
 
 <div id="app" class="admin-container">
 
-  <!-- Login -->
+  <!-- Login ─────────────────────────────────────────────────────── -->
   <div class="admin-login-screen" id="login-screen">
-    <p style="font-size:0.62rem;font-family:var(--ui);letter-spacing:0.15em;text-transform:uppercase;color:var(--accent)">Acceso restringido</p>
+    <p style="font-size:0.62rem;font-family:var(--ui);letter-spacing:0.15em;text-transform:uppercase;color:var(--accent)">
+      Acceso restringido
+    </p>
     <h2>Iniciar sesión para gestionar el catálogo</h2>
     <button class="btn-google" id="btn-google-login">
       <svg width="18" height="18" viewBox="0 0 24 24">
@@ -202,32 +293,43 @@
     <p id="login-error" style="color:#cc3333;font-size:0.78rem;min-height:1.2em;font-family:var(--ui)"></p>
   </div>
 
-  <!-- Panel -->
+  <!-- Panel ─────────────────────────────────────────────────────── -->
   <div id="admin-panel" style="display:none">
     <div class="admin-header">
       <h1>Gestionar ranas</h1>
       <button class="btn-logout" id="btn-logout">Cerrar sesión</button>
     </div>
 
-    <!-- ══ Sección tipografías ══════════════════════════════════════ -->
+    <!-- Tabla de tipografías -->
     <div class="font-manager-section">
       <h3>Tipografías del catálogo</h3>
-      <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1.25rem;font-style:italic;line-height:1.7">
-        Selecciona la fuente para cada letra desde las instaladas en tu computador.
-        Se guarda en Firestore y todos los visitantes la verán correctamente.
+      <p class="font-manager-desc">
+        Sube el archivo de la fuente (OTF, TTF, WOFF2…) para cada letra. Se guardará en Firestore
+        y todos los visitantes la verán correctamente, sin necesidad de archivos locales ni carpeta
+        <code style="font-family:monospace;font-size:0.85em">fonts/</code>.
         Solo necesitas hacerlo una vez por tipografía.
       </p>
       <table class="font-table">
-        <thead><tr><th>Letra</th><th>Muestra</th><th>Tipografía</th><th>Estado</th><th>Acción</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Letra</th>
+            <th>Muestra</th>
+            <th>Tipografía</th>
+            <th>Estado</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
         <tbody id="font-table-body"></tbody>
       </table>
     </div>
 
-    <!-- ══ Grid letras ══════════════════════════════════════════════ -->
-    <p style="font-family:var(--ui);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.75rem">Seleccionar especie</p>
+    <!-- Grid letras -->
+    <p style="font-family:var(--ui);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.75rem">
+      Seleccionar especie
+    </p>
     <div class="rana-select-grid" id="rana-select-grid"></div>
 
-    <!-- ══ Formulario ═══════════════════════════════════════════════ -->
+    <!-- Formulario -->
     <div class="admin-form" id="admin-form">
       <h2 id="form-title" style="font-size:0.95rem;font-weight:400;font-style:italic;color:var(--text-muted);margin-bottom:1.5rem"></h2>
 
@@ -272,13 +374,21 @@
 
       <div class="form-section">
         <h3>Textos descriptivos</h3>
-        <div class="form-group"><label>Descripción</label><textarea id="f-descripcion" style="min-height:150px"></textarea></div>
-        <div class="form-group"><label>Dato curioso</label><textarea id="f-dato-curioso"></textarea></div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="f-descripcion" style="min-height:150px"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Dato curioso</label>
+          <textarea id="f-dato-curioso"></textarea>
+        </div>
       </div>
 
       <div class="form-section">
         <h3>Ilustración</h3>
-        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">PNG sin fondo. Sube a Google Drive o Cloudinary y pega la URL directa.</p>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">
+          PNG sin fondo. Sube a Google Drive o Cloudinary y pega la URL directa.
+        </p>
         <div class="form-group">
           <label>URL de la ilustración (PNG sin fondo)</label>
           <input type="url" id="f-imagen-url" placeholder="https://drive.google.com/... o https://res.cloudinary.com/...">
@@ -288,22 +398,31 @@
 
       <div class="form-section">
         <h3>Segmentos de timelapse</h3>
-        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">Link de Google Drive o YouTube. Inicio/fin en segundos.</p>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">
+          Link de Google Drive o YouTube. Inicio/fin en segundos.
+        </p>
         <div id="video-segs-container"></div>
         <button class="btn-add" id="btn-add-seg" type="button">+ Agregar segmento de video</button>
       </div>
 
       <div class="form-section">
         <h3>Imágenes de referencia</h3>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">
+          URLs de fotos de referencia (iNaturalist, Wikimedia, etc.)
+        </p>
         <div id="ref-imgs-container"></div>
         <button class="btn-add" id="btn-add-ref-img" type="button">+ Agregar imagen de referencia</button>
       </div>
 
       <div class="form-section">
-        <h3>Referencias bibliográficas (APA 7.ª ed.)</h3>
+        <h3>Referencias bibliográficas (APA 7.ª edición)</h3>
+        <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">
+          Una referencia por línea, ya formateada.
+        </p>
         <div class="form-group">
           <label>Referencias (una por línea)</label>
-          <textarea id="f-referencias-texto" style="min-height:180px;font-size:0.8rem" placeholder="Apellido, N. (año). Título. Editorial. https://doi.org/..."></textarea>
+          <textarea id="f-referencias-texto" style="min-height:180px;font-size:0.8rem"
+            placeholder="Apellido, N. (año). Título del trabajo. Editorial. https://doi.org/..."></textarea>
         </div>
       </div>
 
@@ -314,7 +433,7 @@
 </div>
 
 <script type="module">
-  import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc, collection, getDocs }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
@@ -328,15 +447,46 @@
   const provider = new GoogleAuthProvider();
   const LETRAS   = "abcdefghijklmnopqrstuvwxyz".split("");
 
-  let currentLetra         = null;
-  let allFontFamilies      = [];
-  let filteredFamilies     = [];
-  let selectedFontFamily   = null;
-  let previewText          = "Aa Bb Cc";
+  let currentLetra          = null;
   let fontPickerTargetLetra = null;
-  let hostedFonts          = {};  // { slug: { regularB64, italicB64, familyName, mimeType } }
+  let pendingRegularB64     = null;
+  let pendingItalicB64      = null;
+  let pendingRegularMime    = null;
+  let pendingRegularName    = null;
+  let hostedFonts           = {};
 
-  // ── Auth ──────────────────────────────────────────────────────────
+  // ── Helpers ────────────────────────────────────────────────────────
+  function slugify(str) {
+    return str.toLowerCase()
+      .replace(/[áàäâ]/g,"a").replace(/[éèëê]/g,"e")
+      .replace(/[íìïî]/g,"i").replace(/[óòöô]/g,"o")
+      .replace(/[úùüû]/g,"u").replace(/ñ/g,"n")
+      .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload  = () => resolve(reader.result.split(",")[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
+  }
+
+  function mimeFromFile(file) {
+    if (file.type) return file.type;
+    const ext = file.name.split(".").pop().toLowerCase();
+    const map = { woff2:"font/woff2", woff:"font/woff", otf:"font/otf", ttf:"font/ttf" };
+    return map[ext] || "font/otf";
+  }
+
+  // ── Auth ───────────────────────────────────────────────────────────
   onAuthStateChanged(auth, user => {
     if (user && ADMIN_EMAILS.includes(user.email)) {
       showPanel();
@@ -348,6 +498,7 @@
       showLogin();
     }
   });
+
   document.getElementById("btn-google-login").addEventListener("click", async () => {
     try { await signInWithPopup(auth, provider); }
     catch (e) { document.getElementById("login-error").textContent = "Error: " + e.message; }
@@ -367,53 +518,38 @@
   }
 
   // ══════════════════════════════════════════════════════════════════
-  // TIPOGRAFÍAS — base64 en Firestore
+  // TIPOGRAFÍAS
   // ══════════════════════════════════════════════════════════════════
-
-  function slugify(str) {
-    return str.toLowerCase()
-      .replace(/[áàäâ]/g,"a").replace(/[éèëê]/g,"e")
-      .replace(/[íìïî]/g,"i").replace(/[óòöô]/g,"o")
-      .replace(/[úùüû]/g,"u").replace(/ñ/g,"n")
-      .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-  }
 
   async function loadHostedFonts() {
     try {
-      // Solo cargamos metadatos (sin el base64) para la tabla
       const snap = await getDocs(collection(db, "tipografias"));
       snap.forEach(d => {
         const data = d.data();
         hostedFonts[d.id] = {
-          familyName: data.familyName,
+          familyName: data.familyName || data.tipografia,
           tipografia: data.tipografia,
           mimeType:   data.mimeType || "font/otf",
           hasRegular: !!data.regularB64,
           hasItalic:  !!data.italicB64,
         };
-        // Inyectar @font-face en el admin para la tabla de muestra
-        injectFontFace(d.id, data);
+        injectFontFaceForTable(d.id, data);
       });
     } catch (e) { console.warn("No se cargaron tipografías:", e.message); }
   }
 
-  function injectFontFace(slug, data) {
-    if (document.getElementById(`ff-${slug}`) || !data.regularB64) return;
+  // Inyecta @font-face con nombre especial para la tabla del admin
+  function injectFontFaceForTable(slug, data) {
+    if (document.getElementById(`ff-adm-${slug}`) || !data.regularB64) return;
     const mime = data.mimeType || "font/otf";
     const s = document.createElement("style");
-    s.id = `ff-${slug}`;
+    s.id = `ff-adm-${slug}`;
     s.textContent = `
       @font-face {
-        font-family: '${data.tipografia}__adm';
+        font-family: '__adm_${slug}';
         src: url('data:${mime};base64,${data.regularB64}');
         font-weight: normal; font-style: normal; font-display: block;
-      }
-      ${data.italicB64 ? `@font-face {
-        font-family: '${data.tipografia}__adm';
-        src: url('data:${mime};base64,${data.italicB64}');
-        font-weight: normal; font-style: italic; font-display: block;
-      }` : ""}
-    `;
+      }`;
     document.head.appendChild(s);
   }
 
@@ -422,20 +558,23 @@
     tbody.innerHTML = RANAS_DATA.map(r => {
       const slug   = slugify(r.tipografia);
       const hosted = hostedFonts[slug];
-      const ff     = hosted ? `'${r.tipografia}__adm'` : "serif";
+      const ff     = hosted?.hasRegular ? `'__adm_${slug}'` : "inherit";
+      const sample = hosted?.hasRegular
+        ? `<span style="font-family:${ff}">${r.letra.toUpperCase()}${r.letra} Rana</span>`
+        : `<span style="color:var(--text-faint);font-style:italic;font-size:0.72rem">sin fuente</span>`;
       return `
         <tr id="font-row-${r.letra}">
           <td class="col-letra">${r.letra.toUpperCase()}${r.letra}</td>
-          <td class="col-sample" style="font-family:${ff}">${r.letra.toUpperCase()}${r.letra}Rana</td>
+          <td class="col-sample">${sample}</td>
           <td class="col-name">${r.tipografia}</td>
           <td>
             <span class="badge-hosted ${hosted?.hasRegular ? 'badge-yes' : 'badge-no'}">
-              ${hosted?.hasRegular ? '✓ Guardada' : '— Sin subir'}
+              ${hosted?.hasRegular ? '✓ Guardada' : '— Pendiente'}
             </span>
           </td>
           <td>
             <button class="btn-table-action" id="btn-upload-${r.letra}"
-              onclick="openFontPickerForLetra('${r.letra}')">
+              onclick="openFontModal('${r.letra}')">
               ${hosted?.hasRegular ? 'Cambiar' : 'Subir fuente'}
             </button>
           </td>
@@ -443,96 +582,122 @@
     }).join("");
   }
 
-  // ── Font picker ───────────────────────────────────────────────────
-  window.openFontPickerForLetra = async function(letra) {
+  // ── Modal ──────────────────────────────────────────────────────────
+  window.openFontModal = function(letra) {
     fontPickerTargetLetra = letra;
-    selectedFontFamily = null;
+    pendingRegularB64     = null;
+    pendingItalicB64      = null;
+    pendingRegularMime    = null;
+    pendingRegularName    = null;
+
+    const rana = RANAS_DATA.find(r => r.letra === letra);
+    document.getElementById("font-modal-subtitle").textContent =
+      `${letra.toUpperCase()}${letra} · ${rana?.tipografia || ""}`;
+
+    // Limpiar estado visual
+    resetDropZone("drop-regular", "input-regular");
+    resetDropZone("drop-italic",  "input-italic");
+    document.getElementById("preview-regular").classList.remove("visible");
+    document.getElementById("preview-italic").classList.remove("visible");
     document.getElementById("btn-font-confirm").disabled = true;
-    document.getElementById("font-selected-label").textContent = "Ninguna fuente seleccionada";
+    document.getElementById("font-status-label").innerHTML =
+      "Selecciona al menos el archivo regular para continuar.";
+
     document.getElementById("font-modal-backdrop").classList.add("open");
-
-    if (allFontFamilies.length === 0) await loadLocalFonts();
-    else renderFontGrid(filteredFamilies);
   };
 
-  async function loadLocalFonts() {
-    const grid = document.getElementById("font-grid");
-    grid.innerHTML = '<div class="font-loading">Solicitando acceso a las fuentes…</div>';
+  function resetDropZone(zoneId, inputId) {
+    const zone  = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+    // Recrear el input para limpiar el valor (necesario en algunos navegadores)
+    const newInput = input.cloneNode(true);
+    input.parentNode.replaceChild(newInput, input);
+    attachInputListener(newInput, zoneId === "drop-regular" ? "regular" : "italic");
+    zone.classList.remove("drag-over");
+  }
 
-    if (!("queryLocalFonts" in window)) {
-      grid.innerHTML = `<div class="font-error">
-        <strong>Tu navegador no soporta la API de fuentes locales.</strong><br><br>
-        Usa Chrome 103+ o Edge para esta función.
-      </div>`;
-      return;
-    }
-    try {
-      const fonts = await window.queryLocalFonts();
-      const familyMap = new Map();
-      for (const f of fonts) {
-        if (!familyMap.has(f.family)) familyMap.set(f.family, []);
-        familyMap.get(f.family).push(f);
-      }
-      allFontFamilies = [...familyMap.entries()]
-        .sort((a,b) => a[0].localeCompare(b[0]))
-        .map(([family, variants]) => ({ family, variants }));
-      filteredFamilies = allFontFamilies;
-      renderFontGrid(allFontFamilies);
-    } catch(e) {
-      if (e.name === "NotAllowedError") {
-        grid.innerHTML = `<div class="font-error"><strong>Permiso denegado.</strong><br><br>
-          Recarga la página y acepta el permiso que Chrome solicita.</div>`;
-      } else {
-        grid.innerHTML = `<div class="font-error">Error: ${e.message}</div>`;
-      }
+  function attachInputListener(input, type) {
+    input.addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file) handleFontFile(file, type);
+    });
+  }
+
+  // Inicializar listeners de drag & drop y file input
+  function initDropZone(zoneId, inputId, type) {
+    const zone  = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+
+    attachInputListener(input, type);
+
+    zone.addEventListener("dragover",  e => { e.preventDefault(); zone.classList.add("drag-over"); });
+    zone.addEventListener("dragleave", ()  => zone.classList.remove("drag-over"));
+    zone.addEventListener("drop", e => {
+      e.preventDefault();
+      zone.classList.remove("drag-over");
+      const file = e.dataTransfer.files[0];
+      if (file) handleFontFile(file, type);
+    });
+  }
+
+  initDropZone("drop-regular", "input-regular", "regular");
+  initDropZone("drop-italic",  "input-italic",  "italic");
+
+  async function handleFontFile(file, type) {
+    const mime = mimeFromFile(file);
+    const b64  = await fileToBase64(file);
+
+    if (type === "regular") {
+      pendingRegularB64  = b64;
+      pendingRegularMime = mime;
+      pendingRegularName = file.name;
+
+      // Inyectar @font-face de preview
+      injectPreviewFontFace("__font_preview_regular", mime, b64, false);
+
+      // Mostrar preview
+      document.getElementById("preview-regular-name").textContent = file.name;
+      document.getElementById("preview-regular-size").textContent = formatBytes(file.size);
+      document.getElementById("preview-regular").classList.add("visible");
+
+      document.getElementById("btn-font-confirm").disabled = false;
+      document.getElementById("font-status-label").innerHTML =
+        `Listo: <strong>${file.name}</strong> — ${formatBytes(file.size)}`;
+
+    } else {
+      pendingItalicB64 = b64;
+      injectPreviewFontFace("__font_preview_italic", mime, b64, true);
+
+      document.getElementById("preview-italic-name").textContent = file.name;
+      document.getElementById("preview-italic").classList.add("visible");
     }
   }
 
-  function renderFontGrid(families) {
-    const grid = document.getElementById("font-grid");
-    const visible = families.slice(0, 200);
-    if (!visible.length) {
-      grid.innerHTML = '<div class="font-loading">No se encontraron fuentes.</div>';
-      return;
-    }
-    grid.innerHTML = visible.map(f => `
-      <div class="font-item" id="fi-${slugify(f.family)}"
-        onclick="selectFontFamily(${JSON.stringify(f.family)})">
-        <div class="font-item-preview" style="font-family:'${f.family}'">${previewText}</div>
-        <div class="font-item-name">${f.family}</div>
-        <div class="font-item-styles">${f.variants.length} estilo${f.variants.length !== 1 ? "s" : ""}</div>
-      </div>`).join("") +
-      (families.length > 200
-        ? `<div class="font-loading" style="grid-column:1/-1;padding:1rem">… y ${families.length-200} más. Usa la búsqueda.</div>`
-        : "");
+  function injectPreviewFontFace(family, mime, b64, italic) {
+    const styleId = `ff-preview-${italic ? "italic" : "regular"}`;
+    document.getElementById(styleId)?.remove();
+    const s = document.createElement("style");
+    s.id = styleId;
+    s.textContent = `@font-face {
+      font-family: '${family}';
+      src: url('data:${mime};base64,${b64}');
+      font-weight: normal;
+      font-style: ${italic ? "italic" : "normal"};
+      font-display: block;
+    }`;
+    document.head.appendChild(s);
   }
 
-  window.selectFontFamily = function(familyName) {
-    selectedFontFamily = allFontFamilies.find(f => f.family === familyName);
-    document.querySelectorAll(".font-item").forEach(el => el.classList.remove("selected"));
-    document.getElementById(`fi-${slugify(familyName)}`)?.classList.add("selected");
-    document.getElementById("btn-font-confirm").disabled = false;
-    document.getElementById("font-selected-label").innerHTML =
-      `Seleccionada: <strong>${familyName}</strong> · ${selectedFontFamily?.variants.length || 0} estilos`;
-  };
-
-  document.getElementById("font-search-input").addEventListener("input", e => {
-    const q = e.target.value.trim().toLowerCase();
-    filteredFamilies = q
-      ? allFontFamilies.filter(f => f.family.toLowerCase().includes(q))
-      : allFontFamilies;
-    renderFontGrid(filteredFamilies);
-  });
-
-  document.querySelectorAll(".preview-text-btn").forEach(btn => {
+  // Botones de tamaño de preview
+  document.querySelectorAll(".preview-size-btn").forEach(btn => {
     btn.addEventListener("click", () => {
-      document.querySelectorAll(".preview-text-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".preview-size-btn").forEach(b => b.classList.remove("active"));
       btn.classList.add("active");
-      previewText = btn.dataset.text;
-      document.querySelectorAll(".font-item-preview").forEach(el => el.textContent = previewText);
+      document.getElementById("preview-big").style.fontSize = btn.dataset.size;
     });
   });
 
+  // Cerrar modal
   document.getElementById("font-modal-close").addEventListener("click", closeFontModal);
   document.getElementById("font-modal-backdrop").addEventListener("click", e => {
     if (e.target === document.getElementById("font-modal-backdrop")) closeFontModal();
@@ -543,55 +708,27 @@
     document.getElementById("font-modal-backdrop").classList.remove("open");
   }
 
-  // ── Confirmar: blob → base64 → Firestore ─────────────────────────
+  // ── Guardar fuente en Firestore ────────────────────────────────────
   document.getElementById("btn-font-confirm").addEventListener("click", async () => {
-    if (!selectedFontFamily || !fontPickerTargetLetra) return;
+    if (!pendingRegularB64 || !fontPickerTargetLetra) return;
 
-    const rana = RANAS_DATA.find(r => r.letra === fontPickerTargetLetra);
-    if (!rana) return;
+    const rana      = RANAS_DATA.find(r => r.letra === fontPickerTargetLetra);
+    const btn       = document.getElementById("btn-font-confirm");
+    const statusLbl = document.getElementById("font-status-label");
+    const tableBtn  = document.getElementById(`btn-upload-${fontPickerTargetLetra}`);
 
-    const btn = document.getElementById("btn-font-confirm");
-    const uploadBtn = document.getElementById(`btn-upload-${fontPickerTargetLetra}`);
     btn.disabled = true;
-    btn.textContent = "Procesando…";
-    closeFontModal();
-    if (uploadBtn) { uploadBtn.disabled = true; uploadBtn.textContent = "Procesando…"; }
+    btn.textContent = "Guardando…";
+    if (tableBtn) { tableBtn.disabled = true; tableBtn.textContent = "Guardando…"; }
 
     try {
-      const variants = selectedFontFamily.variants;
-
-      // Regular: buscar la variante más "normal"
-      const regularV = variants.find(v =>
-        /^(regular|normal|roman|book)$/i.test(v.style) || v.style === "Regular"
-      ) || variants.find(v => !/(italic|bold|heavy|black|medium|light|thin|condensed)/i.test(v.style))
-        || variants[0];
-
-      // Italic: buscar sin negrita
-      const italicV = variants.find(v =>
-        /italic/i.test(v.style) && !/bold|heavy|black|medium|light|thin/i.test(v.style)
-      ) || null;
-
-      if (uploadBtn) uploadBtn.textContent = "Convirtiendo…";
-
-      // Convertir a base64
-      const regularBlob = await regularV.blob();
-      const mimeType    = regularBlob.type || "font/otf";
-      const regularB64  = await blobToBase64(regularBlob);
-      let italicB64 = null;
-      if (italicV) {
-        const italicBlob = await italicV.blob();
-        italicB64 = await blobToBase64(italicBlob);
-      }
-
-      if (uploadBtn) uploadBtn.textContent = "Guardando en Firestore…";
-
       const slug = slugify(rana.tipografia);
       const fontData = {
-        familyName:  selectedFontFamily.family,
+        familyName:  pendingRegularName,
         tipografia:  rana.tipografia,
-        mimeType,
-        regularB64,
-        italicB64:   italicB64 || null,
+        mimeType:    pendingRegularMime,
+        regularB64:  pendingRegularB64,
+        italicB64:   pendingItalicB64 || null,
         updatedAt:   new Date().toISOString(),
       };
 
@@ -599,34 +736,27 @@
 
       // Actualizar estado local
       hostedFonts[slug] = {
-        familyName: selectedFontFamily.family,
+        familyName: pendingRegularName,
         tipografia: rana.tipografia,
-        mimeType,
+        mimeType:   pendingRegularMime,
         hasRegular: true,
-        hasItalic:  !!italicB64,
+        hasItalic:  !!pendingItalicB64,
       };
-      injectFontFace(slug, fontData);
+      injectFontFaceForTable(slug, fontData);
       renderFontTable();
+
+      statusLbl.innerHTML = `<strong style="color:var(--accent)">✓ Guardada correctamente</strong>`;
+      btn.textContent = "Guardar en la nube →";
+      setTimeout(closeFontModal, 900);
 
     } catch(e) {
       console.error(e);
-      alert("Error al guardar la fuente: " + e.message);
-      if (uploadBtn) { uploadBtn.disabled = false; uploadBtn.textContent = "Reintentar"; }
-    } finally {
+      statusLbl.textContent = "Error al guardar: " + e.message;
       btn.disabled = false;
-      btn.textContent = "Guardar fuente →";
+      btn.textContent = "Reintentar";
+      if (tableBtn) { tableBtn.disabled = false; tableBtn.textContent = "Reintentar"; }
     }
   });
-
-  // blob → base64 string (sin el prefijo data:...)
-  function blobToBase64(blob) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload  = () => resolve(reader.result.split(",")[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  }
 
   // ══════════════════════════════════════════════════════════════════
   // FORMULARIO POR RANA
@@ -689,7 +819,8 @@
   function updateImagePreview(url) {
     const c = document.getElementById("imagen-preview-container");
     c.innerHTML = (url && url.startsWith("http"))
-      ? `<img src="${url}" style="max-width:180px;max-height:180px;object-fit:contain;border-radius:4px" onerror="this.style.display='none'">`
+      ? `<img src="${url}" style="max-width:180px;max-height:180px;object-fit:contain;border-radius:4px"
+           alt="Preview" onerror="this.style.display='none'">`
       : "";
   }
 
@@ -701,17 +832,30 @@
     return `<div class="seg-item" id="seg-${i}">
       <button type="button" class="btn-remove-ref" onclick="removeSeg(${i})">×</button>
       <div class="form-row">
-        <div class="form-group"><label>URL del video</label><input type="url" id="seg-url-${i}" value="${s.url||''}" placeholder="https://drive.google.com/file/d/..."></div>
-        <div class="form-group"><label>Etiqueta</label><input type="text" id="seg-etiqueta-${i}" value="${s.etiqueta||''}" placeholder="ej: Boceto, Lineart…"></div>
+        <div class="form-group">
+          <label>URL del video (Drive o YouTube)</label>
+          <input type="url" id="seg-url-${i}" value="${s.url||''}" placeholder="https://drive.google.com/file/d/...">
+        </div>
+        <div class="form-group">
+          <label>Etiqueta del segmento</label>
+          <input type="text" id="seg-etiqueta-${i}" value="${s.etiqueta||''}" placeholder="ej: Boceto, Lineart, Pintura…">
+        </div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Inicio (s)</label><input type="number" id="seg-inicio-${i}" value="${s.inicio||0}" min="0"></div>
-        <div class="form-group"><label>Fin (s, 0=hasta el final)</label><input type="number" id="seg-fin-${i}" value="${s.fin||0}" min="0"></div>
+        <div class="form-group">
+          <label>Inicio (segundos)</label>
+          <input type="number" id="seg-inicio-${i}" value="${s.inicio||0}" min="0">
+        </div>
+        <div class="form-group">
+          <label>Fin (segundos, 0 = hasta el final)</label>
+          <input type="number" id="seg-fin-${i}" value="${s.fin||0}" min="0">
+        </div>
       </div>
     </div>`;
   }
   document.getElementById("btn-add-seg").addEventListener("click", () => {
-    document.getElementById("video-segs-container").insertAdjacentHTML("beforeend", buildSegHTML(Date.now()));
+    document.getElementById("video-segs-container")
+      .insertAdjacentHTML("beforeend", buildSegHTML(Date.now()));
   });
   window.removeSeg = id => document.getElementById(`seg-${id}`)?.remove();
 
@@ -723,13 +867,20 @@
     return `<div class="ref-item" id="refimg-${i}">
       <button type="button" class="btn-remove-ref" onclick="removeRefImg(${i})">×</button>
       <div class="form-row">
-        <div class="form-group"><label>URL</label><input type="url" id="refimg-url-${i}" value="${img.url||''}"></div>
-        <div class="form-group"><label>Descripción / crédito</label><input type="text" id="refimg-caption-${i}" value="${img.caption||''}"></div>
+        <div class="form-group">
+          <label>URL de la imagen</label>
+          <input type="url" id="refimg-url-${i}" value="${img.url||''}" placeholder="https://...">
+        </div>
+        <div class="form-group">
+          <label>Descripción / crédito</label>
+          <input type="text" id="refimg-caption-${i}" value="${img.caption||''}">
+        </div>
       </div>
     </div>`;
   }
   document.getElementById("btn-add-ref-img").addEventListener("click", () => {
-    document.getElementById("ref-imgs-container").insertAdjacentHTML("beforeend", buildRefImgHTML(Date.now()));
+    document.getElementById("ref-imgs-container")
+      .insertAdjacentHTML("beforeend", buildRefImgHTML(Date.now()));
   });
   window.removeRefImg = id => document.getElementById(`refimg-${id}`)?.remove();
 
@@ -745,31 +896,47 @@
       const g = id => document.getElementById(id);
       const segs = [...document.querySelectorAll("[id^='seg-url-']")].map(el => {
         const i = el.id.replace("seg-url-","");
-        return { url:el.value, etiqueta:(g(`seg-etiqueta-${i}`)||{}).value||"",
-          inicio:parseInt((g(`seg-inicio-${i}`)||{}).value)||0,
-          fin:parseInt((g(`seg-fin-${i}`)||{}).value)||0 };
-      }).filter(s=>s.url);
+        return {
+          url:      el.value,
+          etiqueta: (g(`seg-etiqueta-${i}`) || {}).value || "",
+          inicio:   parseInt((g(`seg-inicio-${i}`) || {}).value) || 0,
+          fin:      parseInt((g(`seg-fin-${i}`)    || {}).value) || 0,
+        };
+      }).filter(s => s.url);
+
       const refImgs = [...document.querySelectorAll("[id^='refimg-url-']")].map(el => {
         const i = el.id.replace("refimg-url-","");
-        return { url:el.value, caption:(g(`refimg-caption-${i}`)||{}).value||"" };
-      }).filter(img=>img.url);
+        return { url: el.value, caption: (g(`refimg-caption-${i}`) || {}).value || "" };
+      }).filter(img => img.url);
+
       const data = {
-        nombreComun: g("f-nombre-comun").value, nombreCientifico: g("f-nombre-cientifico").value,
-        region: g("f-region").value, habitat: g("f-habitat").value, tamano: g("f-tamano").value,
-        estadoIUCN: g("f-iucn").value, coloracion: g("f-coloracion").value,
-        colorAccent: g("f-color-accent").value, inatLink: g("f-inat-link").value,
-        descripcion: g("f-descripcion").value, datoCurioso: g("f-dato-curioso").value,
-        imagenUrl: g("f-imagen-url").value, videoSegmentos: segs,
-        imagenesReferencia: refImgs, referenciasTexto: g("f-referencias-texto").value.trim(),
+        nombreComun:        g("f-nombre-comun").value,
+        nombreCientifico:   g("f-nombre-cientifico").value,
+        region:             g("f-region").value,
+        habitat:            g("f-habitat").value,
+        tamano:             g("f-tamano").value,
+        estadoIUCN:         g("f-iucn").value,
+        coloracion:         g("f-coloracion").value,
+        colorAccent:        g("f-color-accent").value,
+        inatLink:           g("f-inat-link").value,
+        descripcion:        g("f-descripcion").value,
+        datoCurioso:        g("f-dato-curioso").value,
+        imagenUrl:          g("f-imagen-url").value,
+        videoSegmentos:     segs,
+        imagenesReferencia: refImgs,
+        referenciasTexto:   g("f-referencias-texto").value.trim(),
       };
-      await setDoc(doc(db, "ranas", currentLetra), data, { merge:true });
+
+      await setDoc(doc(db, "ranas", currentLetra), data, { merge: true });
       status.textContent = "✓ Guardado correctamente";
       status.className   = "save-status success";
       document.querySelector(`[data-letra="${currentLetra}"]`)?.classList.add("has-data");
     } catch(e) {
       status.textContent = "Error al guardar: " + e.message;
       status.className   = "save-status error";
-    } finally { btn.disabled = false; }
+    } finally {
+      btn.disabled = false;
+    }
   });
 </script>
 </body>
