@@ -32,14 +32,14 @@
 </div>
 
 <script type="module">
-  import { initializeApp }         from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { initializeApp }             from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { firebaseConfig }        from "./js/firebase-config.js";
+  import { firebaseConfig }            from "./js/firebase-config.js";
   import { RANAS_DATA, FONT_MAP, IUCN_CONFIG } from "./js/data.js";
 
-  const LETRAS = "abcdefghijklmnopqrstuvwxyz".split("");
-  const params  = new URLSearchParams(window.location.search);
-  const letra   = (params.get("letra") || "a").toLowerCase();
+  const LETRAS   = "abcdefghijklmnopqrstuvwxyz".split("");
+  const params   = new URLSearchParams(window.location.search);
+  const letra    = (params.get("letra") || "a").toLowerCase();
   const letraIdx = LETRAS.indexOf(letra);
 
   if (letraIdx === -1) {
@@ -51,18 +51,56 @@
     loadRana(letra, letraIdx);
   }
 
+  function slugify(str) {
+    return str.toLowerCase()
+      .replace(/[áàäâ]/g,"a").replace(/[éèëê]/g,"e")
+      .replace(/[íìïî]/g,"i").replace(/[óòöô]/g,"o")
+      .replace(/[úùüû]/g,"u").replace(/ñ/g,"n")
+      .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  }
+
   async function loadRana(letra, idx) {
     const baseData = RANAS_DATA.find(r => r.letra === letra);
     let rana = { ...baseData };
+
     try {
       const app  = initializeApp(firebaseConfig);
       const db   = getFirestore(app);
-      const timeout = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("timeout")), 6000)
-      );
-      const snap = await Promise.race([getDoc(doc(db, "ranas", letra)), timeout]);
-      if (snap.exists()) rana = { ...rana, ...snap.data() };
-    } catch (e) { console.warn("Firestore no disponible:", e.message); }
+      const slug = slugify(rana.tipografia);
+
+      // Cargamos datos de la rana y la tipografía en paralelo
+      const timeout = new Promise((_,reject) => setTimeout(() => reject(new Error("timeout")), 7000));
+      const [ranaSnap, fontSnap] = await Promise.all([
+        Promise.race([getDoc(doc(db, "ranas", letra)), timeout]),
+        getDoc(doc(db, "tipografias", slug)).catch(() => null),
+      ]);
+
+      if (ranaSnap.exists?.()) rana = { ...rana, ...ranaSnap.data() };
+
+      // ── Inyectar fuente desde Firestore (base64) ─────────────────
+      if (fontSnap?.exists?.()) {
+        const fd = fontSnap.data();
+        if (fd.regularB64) {
+          const mime = fd.mimeType || "font/otf";
+          const style = document.createElement("style");
+          style.textContent = `
+            @font-face {
+              font-family: '${rana.tipografia}';
+              src: url('data:${mime};base64,${fd.regularB64}');
+              font-weight: normal; font-style: normal; font-display: swap;
+            }
+            ${fd.italicB64 ? `@font-face {
+              font-family: '${rana.tipografia}';
+              src: url('data:${mime};base64,${fd.italicB64}');
+              font-weight: normal; font-style: italic; font-display: swap;
+            }` : ""}
+          `;
+          document.head.appendChild(style);
+          rana._fontFromFirestore = true;
+        }
+      }
+    } catch(e) { console.warn("Firestore no disponible:", e.message); }
+
     renderRana(rana, idx);
   }
 
@@ -70,38 +108,39 @@
     document.getElementById("page-title").textContent =
       `${r.nombreComun} (${r.letra.toUpperCase()}) — Abecedario de Anuros`;
     document.getElementById("page-desc").setAttribute("content",
-      r.descripcion?.substring(0, 160) || "");
+      r.descripcion?.substring(0,160) || "");
 
-    const iucn     = IUCN_CONFIG[r.estadoIUCN] || IUCN_CONFIG["DD"];
-    const fontInfo = FONT_MAP[r.tipografia] || {};
+    const iucn       = IUCN_CONFIG[r.estadoIUCN] || IUCN_CONFIG["DD"];
+    const fontInfo   = FONT_MAP[r.tipografia] || {};
     const fontFamily = fontInfo.cssFamily || `${r.tipografia}, serif`;
 
-    // Cargar fuente si aplica
-    if (fontInfo.googleFont) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = `https://fonts.googleapis.com/css2?family=${fontInfo.googleFont}&display=swap`;
-      document.head.appendChild(link);
-    }
-    if (fontInfo.localFile) {
-      const style = document.createElement("style");
-      style.textContent = `
-        @font-face {
-          font-family: '${r.tipografia}';
-          src: url('fonts/${fontInfo.localFile}/${fontInfo.localFile}.woff2') format('woff2'),
-               url('fonts/${fontInfo.localFile}/${fontInfo.localFile}.woff') format('woff');
-          font-weight: normal; font-style: normal; font-display: swap;
-        }
-        @font-face {
-          font-family: '${r.tipografia}';
-          src: url('fonts/${fontInfo.localFile}/${fontInfo.localFile}-italic.woff2') format('woff2'),
-               url('fonts/${fontInfo.localFile}/${fontInfo.localFile}-italic.woff') format('woff');
-          font-weight: normal; font-style: italic; font-display: swap;
-        }`;
-      document.head.appendChild(style);
+    // Fallbacks solo si no se cargó desde Firestore
+    if (!r._fontFromFirestore) {
+      if (fontInfo.googleFont) {
+        const link = document.createElement("link");
+        link.rel  = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css2?family=${fontInfo.googleFont}&display=swap`;
+        document.head.appendChild(link);
+      } else if (fontInfo.localFile) {
+        const style = document.createElement("style");
+        style.textContent = `
+          @font-face {
+            font-family: '${r.tipografia}';
+            src: url('fonts/${fontInfo.localFile}/${fontInfo.localFile}.woff2') format('woff2'),
+                 url('fonts/${fontInfo.localFile}/${fontInfo.localFile}.woff') format('woff');
+            font-weight: normal; font-style: normal; font-display: swap;
+          }
+          @font-face {
+            font-family: '${r.tipografia}';
+            src: url('fonts/${fontInfo.localFile}/${fontInfo.localFile}-italic.woff2') format('woff2'),
+                 url('fonts/${fontInfo.localFile}/${fontInfo.localFile}-italic.woff') format('woff');
+            font-weight: normal; font-style: italic; font-display: swap;
+          }`;
+        document.head.appendChild(style);
+      }
     }
 
-    // Navegación prev/next
+    // Navegación
     const prevLetra = LETRAS[idx - 1];
     const nextLetra = LETRAS[idx + 1];
     document.getElementById("rana-nav-header").innerHTML = `
@@ -111,68 +150,56 @@
 
     const pageUrl = `${window.location.origin}${window.location.pathname}?letra=${r.letra}`;
 
-    // ── Video segmentos ──
+    // Video
     const videoSegmentos = r.videoSegmentos || [];
     const videoHTML = videoSegmentos.length > 0 ? `
       <div class="video-section content-section">
         <p class="content-section-label">Timelapse de ilustración</p>
         <div class="video-tabs" id="video-tabs">
-          ${videoSegmentos.map((seg, i) => `
-            <button class="video-tab ${i === 0 ? 'active' : ''}"
-              data-url="${seg.url}" data-start="${seg.inicio || 0}" data-end="${seg.fin || 0}"
+          ${videoSegmentos.map((seg,i) => `
+            <button class="video-tab ${i===0?'active':''}"
+              data-url="${seg.url}" data-start="${seg.inicio||0}" data-end="${seg.fin||0}"
               onclick="selectVideoTab(this)">
-              ${seg.etiqueta || `Segmento ${i+1}`}${seg.inicio ? ` (${formatTime(seg.inicio)})` : ''}
-            </button>
-          `).join("")}
+              ${seg.etiqueta||`Segmento ${i+1}`}${seg.inicio?` (${formatTime(seg.inicio)})`:''}
+            </button>`).join("")}
         </div>
-        <div class="video-player" id="video-player">
-          ${buildVideoEmbed(videoSegmentos[0])}
-        </div>
+        <div class="video-player" id="video-player">${buildVideoEmbed(videoSegmentos[0])}</div>
       </div>` : `
       <div class="video-section content-section">
         <p class="content-section-label">Timelapse de ilustración</p>
-        <div class="video-player">
-          <div class="no-video">El timelapse de esta rana aún no está disponible.</div>
-        </div>
+        <div class="video-player"><div class="no-video">El timelapse de esta rana aún no está disponible.</div></div>
       </div>`;
 
-    // ── Imágenes de referencia ──
-    const refImages  = r.imagenesReferencia || [];
+    // Imágenes de referencia
+    const refImages = r.imagenesReferencia || [];
     function buildRefImgHTML(img) {
-      const u = (img.url || "").replace(/&/g,"&amp;").replace(/"/g,"&quot;");
-      const c = (img.caption || "").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-      return '<div class="ref-image-item" onclick="openLightbox(\'' + u + '\',\'' + c + '\')">'
-        + '<img src="' + u + '" alt="' + (c || 'Imagen de referencia') + '" loading="lazy">'
-        + (img.caption ? '<p class="ref-image-caption">' + img.caption + '</p>' : '')
-        + '</div>';
+      const u = (img.url||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;");
+      const c = (img.caption||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+      return `<div class="ref-image-item" onclick="openLightbox('${u}','${c}')">
+        <img src="${u}" alt="${c||'Imagen de referencia'}" loading="lazy">
+        ${img.caption?`<p class="ref-image-caption">${img.caption}</p>`:''}
+      </div>`;
     }
     const refImgHTML = refImages.length > 0 ? `
       <div class="content-section">
         <p class="content-section-label">Imágenes de referencia</p>
-        <div class="ref-images-grid">
-          ${refImages.map(buildRefImgHTML).join("")}
-        </div>
+        <div class="ref-images-grid">${refImages.map(buildRefImgHTML).join("")}</div>
       </div>` : "";
 
-    // ── Referencias APA ──
-    const refTexto = (r.referenciasTexto || "").trim();
+    // Referencias APA
+    const refTexto = (r.referenciasTexto||"").trim();
     const refAPAHTML = refTexto ? `
       <div class="content-section">
         <p class="content-section-label">Referencias</p>
         <ul class="referencias-list">
-          ${refTexto.split("\n").filter(l => l.trim()).map(l =>
-            `<li>${l.trim()}</li>`
-          ).join("")}
+          ${refTexto.split("\n").filter(l=>l.trim()).map(l=>`<li>${l.trim()}</li>`).join("")}
         </ul>
       </div>` : "";
 
-    // ── iNaturalist ──
-    const inatHTML = r.inatLink ? `
-      <a href="${r.inatLink}" target="_blank" rel="noopener" class="inat-link">
-        Ver en iNaturalist ↗
-      </a>` : "";
+    const inatHTML = r.inatLink
+      ? `<a href="${r.inatLink}" target="_blank" rel="noopener" class="inat-link">Ver en iNaturalist ↗</a>`
+      : "";
 
-    // ── Render completo ──
     document.getElementById("rana-page").innerHTML = `
       <section class="rana-hero">
         <div class="rana-letter-bg" aria-hidden="true" style="font-family:${fontFamily}">${r.letra.toUpperCase()}</div>
@@ -188,7 +215,7 @@
           <div class="rana-meta-chips">
             <span class="meta-chip">📍 <strong>${r.region}</strong></span>
             <span class="meta-chip">🌿 <strong>${r.habitat}</strong></span>
-            ${r.tamano ? `<span class="meta-chip">📏 <strong>${r.tamano}</strong></span>` : ""}
+            ${r.tamano?`<span class="meta-chip">📏 <strong>${r.tamano}</strong></span>`:""}
           </div>
 
           <div class="iucn-badge-large" style="background:${iucn.color}">
@@ -198,12 +225,11 @@
 
           <div class="tipo-display">
             <p class="tipo-display-label">Tipografía asignada</p>
-            <p class="tipo-display-sample" style="font-family:${fontFamily}">
-              <p class="tipo-display-name">${r.tipografia}</p>
+            <p class="tipo-display-name">${r.tipografia}</p>
             <p class="tipo-display-sub">${r.clasificacion} · ${r.subclasificacion}</p>
+            <p class="tipo-display-sample" style="font-family:${fontFamily}">
               ${r.letra.toUpperCase()}${r.letra.toLowerCase()} &nbsp; Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz
             </p>
-            
           </div>
         </div>
 
@@ -213,8 +239,7 @@
             <div class="illustration-frame" data-letra="${r.letra.toUpperCase()}">
               ${r.imagenUrl
                 ? `<img class="illustration-img" src="${r.imagenUrl}" alt="Ilustración de ${r.nombreComun}">`
-                : `<div class="illustration-placeholder">🐸</div>`
-              }
+                : `<div class="illustration-placeholder">🐸</div>`}
             </div>
           </div>
         </div>
@@ -235,11 +260,8 @@
             </div>` : `
             <div class="content-section">
               <p class="content-section-label">Descripción</p>
-              <p style="color:var(--text-muted);font-style:italic">
-                La información de esta especie se está preparando y estará disponible pronto.
-              </p>
+              <p style="color:var(--text-muted);font-style:italic">La información de esta especie se está preparando.</p>
             </div>`}
-
             ${videoHTML}
             ${refImgHTML}
             ${refAPAHTML}
@@ -252,10 +274,10 @@
               <dl>
                 <div class="info-row"><dt>Región</dt><dd>${r.region}</dd></div>
                 <div class="info-row"><dt>Hábitat</dt><dd>${r.habitat}</dd></div>
-                ${r.tamano ? `<div class="info-row"><dt>Tamaño</dt><dd>${r.tamano}</dd></div>` : ""}
+                ${r.tamano?`<div class="info-row"><dt>Tamaño</dt><dd>${r.tamano}</dd></div>`:""}
                 <div class="info-row">
                   <dt>Coloración</dt>
-                  <dd>${r.coloracion || '<em style="color:var(--text-muted)">Próximamente</em>'}</dd>
+                  <dd>${r.coloracion||'<em style="color:var(--text-muted)">Próximamente</em>'}</dd>
                 </div>
                 <div class="info-row">
                   <dt>Estado IUCN</dt>
@@ -270,10 +292,7 @@
             <div class="info-card">
               <div class="info-card-header">Tipografía</div>
               <dl>
-                <div class="info-row">
-                  <dt>Nombre</dt>
-                  <dd style="font-family:${fontFamily}">${r.tipografia}</dd>
-                </div>
+                <div class="info-row"><dt>Nombre</dt><dd style="font-family:${fontFamily}">${r.tipografia}</dd></div>
                 <div class="info-row"><dt>Familia</dt><dd>${r.clasificacion}</dd></div>
                 <div class="info-row"><dt>Subfamilia</dt><dd>${r.subclasificacion}</dd></div>
               </dl>
@@ -281,9 +300,7 @@
 
             <div class="qr-section">
               <p class="content-section-label" style="justify-content:center;margin-bottom:0.5rem">Código QR</p>
-              <p style="font-size:0.68rem;color:var(--text-muted);font-family:var(--ui);margin-bottom:0.75rem">
-                Escanea para abrir esta página
-              </p>
+              <p style="font-size:0.68rem;color:var(--text-muted);font-family:var(--ui);margin-bottom:0.75rem">Escanea para abrir esta página</p>
               <div id="qr-code"></div>
               <p class="qr-url">${pageUrl}</p>
             </div>
@@ -292,96 +309,61 @@
       </main>
 
       <nav class="rana-nav" aria-label="Navegación entre letras">
-        ${prevLetra ? `
+        ${prevLetra?`
           <a href="rana.html?letra=${prevLetra}" class="rana-nav-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 18l-6-6 6-6"/></svg>
             ${prevLetra.toUpperCase()}${prevLetra.toLowerCase()} — anterior
-          </a>` : '<span></span>'}
+          </a>`:'<span></span>'}
         <a href="index.html" class="rana-nav-btn" style="font-size:0.65rem">Ver todas</a>
-        ${nextLetra ? `
+        ${nextLetra?`
           <a href="rana.html?letra=${nextLetra}" class="rana-nav-btn">
             ${nextLetra.toUpperCase()}${nextLetra.toLowerCase()} — siguiente
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18l6-6-6-6"/></svg>
-          </a>` : '<span></span>'}
+          </a>`:'<span></span>'}
       </nav>
     `;
 
-    // Generar QR
     setTimeout(() => {
       const qrEl = document.getElementById("qr-code");
       if (qrEl && typeof QRCode !== "undefined") {
-        new QRCode(qrEl, {
-          text: pageUrl, width: 132, height: 132,
-          colorDark: "#EAE8E0", colorLight: "#1C2116",
-          correctLevel: QRCode.CorrectLevel.M
-        });
+        new QRCode(qrEl, { text:pageUrl, width:132, height:132,
+          colorDark:"#EAE8E0", colorLight:"#1C2116", correctLevel:QRCode.CorrectLevel.M });
       }
     }, 120);
 
     initLightbox();
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────
   function formatTime(secs) {
-    const m = Math.floor(secs / 60);
-    const s = secs % 60;
-    return `${m}:${String(s).padStart(2,"0")}`;
+    return `${Math.floor(secs/60)}:${String(secs%60).padStart(2,"0")}`;
   }
 
   function buildVideoEmbed(seg) {
-    if (!seg || !seg.url) return '<div class="no-video">Video no disponible.</div>';
-
-    // Google Drive
-    const driveMatch = seg.url.match(/(?:drive\.google\.com\/file\/d\/|\/d\/)([a-zA-Z0-9_-]+)/);
-    if (driveMatch) {
-      const fileId = driveMatch[1];
-      const start  = seg.inicio || 0;
-      return `<iframe src="https://drive.google.com/file/d/${fileId}/preview#t=${start}"
-        allow="autoplay" allowfullscreen title="Timelapse de ilustración"></iframe>`;
-    }
-
-    // YouTube
-    const ytMatch = seg.url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]+)/);
-    if (ytMatch) {
-      const videoId = ytMatch[1];
-      const start   = seg.inicio || 0;
-      const end     = seg.fin ? `&end=${seg.fin}` : "";
-      return `<iframe src="https://www.youtube.com/embed/${videoId}?start=${start}${end}&rel=0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen title="Timelapse de ilustración"></iframe>`;
-    }
-
-    // Video directo
-    if (seg.url.match(/\.(mp4|webm|ogg)$/i)) {
-      return `<video controls style="width:100%;height:100%;position:absolute;inset:0"
-        ${seg.inicio ? `onloadedmetadata="this.currentTime=${seg.inicio}"` : ""}>
-        <source src="${seg.url}" type="video/mp4">
-      </video>`;
-    }
-
+    if (!seg?.url) return '<div class="no-video">Video no disponible.</div>';
+    const drive = seg.url.match(/(?:drive\.google\.com\/file\/d\/|\/d\/)([a-zA-Z0-9_-]+)/);
+    if (drive) return `<iframe src="https://drive.google.com/file/d/${drive[1]}/preview#t=${seg.inicio||0}" allow="autoplay" allowfullscreen title="Timelapse"></iframe>`;
+    const yt = seg.url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]+)/);
+    if (yt) return `<iframe src="https://www.youtube.com/embed/${yt[1]}?start=${seg.inicio||0}${seg.fin?`&end=${seg.fin}`:""}&rel=0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Timelapse"></iframe>`;
+    if (seg.url.match(/\.(mp4|webm|ogg)$/i)) return `<video controls style="width:100%;height:100%;position:absolute;inset:0" ${seg.inicio?`onloadedmetadata="this.currentTime=${seg.inicio}"`:""}><source src="${seg.url}" type="video/mp4"></video>`;
     return '<div class="no-video">Formato de video no reconocido.</div>';
   }
 
   function initLightbox() {
-    const lb      = document.getElementById("lightbox");
-    const lbImg   = document.getElementById("lightbox-img");
-    const lbClose = document.getElementById("lightbox-close");
-    if (!lb || !lbImg) return;
-    lbClose.addEventListener("click", () => lb.classList.remove("open"));
+    const lb = document.getElementById("lightbox");
+    const lbImg = document.getElementById("lightbox-img");
+    document.getElementById("lightbox-close").addEventListener("click", () => lb.classList.remove("open"));
     lb.addEventListener("click", e => { if (e.target === lb) lb.classList.remove("open"); });
     document.addEventListener("keydown", e => { if (e.key === "Escape") lb.classList.remove("open"); });
-    window.openLightbox = (url, alt) => { lbImg.src = url; lbImg.alt = alt; lb.classList.add("open"); };
+    window.openLightbox = (url,alt) => { lbImg.src=url; lbImg.alt=alt; lb.classList.add("open"); };
   }
 
   window.selectVideoTab = function(btn) {
     document.querySelectorAll(".video-tab").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    const seg = { url: btn.dataset.url, inicio: parseInt(btn.dataset.start) || 0, fin: parseInt(btn.dataset.end) || 0 };
-    document.getElementById("video-player").innerHTML = buildVideoEmbed(seg);
+    document.getElementById("video-player").innerHTML =
+      buildVideoEmbed({ url:btn.dataset.url, inicio:parseInt(btn.dataset.start)||0, fin:parseInt(btn.dataset.end)||0 });
   };
-
   window.buildVideoEmbed = buildVideoEmbed;
 </script>
-
 </body>
 </html>
