@@ -1,460 +1,505 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Abecedario de Anuros</title>
-  <meta name="description" content="Un catálogo tipográfico ilustrado de A a Z con 26 especies de ranas y sapos del mundo, cada una asignada a una tipografía histórica.">
+  <meta name="description"
+    content="Un catálogo tipográfico ilustrado de A a Z con 26 especies de ranas y sapos del mundo, cada una asignada a una tipografía histórica.">
   <meta property="og:title" content="Abecedario de Anuros">
-  <meta property="og:description" content="Catálogo tipográfico ilustrado de anuros — A hasta Z, 26 especies, 26 tipografías.">
+  <meta property="og:description"
+    content="Catálogo tipográfico ilustrado de anuros — A hasta Z, 26 especies, 26 tipografías.">
   <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="css/main.css">
 </head>
+
 <body>
 
-<!-- ── Canvases de fondo ──────────────────────────────────────── -->
-<canvas id="forest-canvas"></canvas>
-<canvas id="firefly-canvas"></canvas>
+  <!-- ── Canvases de fondo ──────────────────────────────────────── -->
+  <canvas id="forest-canvas"></canvas>
+  <canvas id="firefly-canvas"></canvas>
 
-<!-- ── Cursor personalizado ─────────────────────────────────── -->
-<div class="cursor-dot" id="cursor-dot"></div>
-<div class="cursor-ring" id="cursor-ring"></div>
+  <!-- ── Cursor personalizado ─────────────────────────────────── -->
+  <div class="cursor-dot" id="cursor-dot"></div>
+  <div class="cursor-ring" id="cursor-ring"></div>
 
 
 
-<!-- ── Overlay de transición ─────────────────────────────────── -->
-<div id="page-transition" style="
+  <!-- ── Overlay de transición ─────────────────────────────────── -->
+  <div id="page-transition" style="
   position:fixed;inset:0;z-index:9999;
   background:radial-gradient(ellipse at center, rgba(20,40,10,0.0) 0%, rgba(8,13,6,0) 100%);
   pointer-events:none;opacity:0;transition:opacity 0.6s ease;
 "></div>
 
-<header class="site-header">
-  <div class="site-logo">
-    Abecedario de Anuros
-    <span>— catálogo tipográfico</span>
-  </div>
-  <nav class="site-nav">
-    <a href="#galeria">Galería</a>
-    <a href="#proyecto">Proyecto</a>
-  </nav>
-</header>
-
-<section class="hero">
-  <div class="hero-main fade-up">
-    <p class="hero-eyebrow">Catálogo tipográfico · 2026</p>
-    <h1 class="hero-h1">Abecedario<br><em>de Anuros</em></h1>
-    <p class="hero-desc">
-      Cada letra del alfabeto latino reúne una tipografía histórica
-      y una especie de rana o sapo. Letra, forma y vida silvestre.
-    </p>
-    <a href="#galeria" class="hero-cta">Explorar el catálogo →</a>
-  </div>
-  <div class="hero-stats">
-    <div class="hero-stat"><div class="stat-num">26</div><div class="stat-label">Especies</div></div>
-    <div class="hero-stat"><div class="stat-num">26</div><div class="stat-label">Tipografías</div></div>
-    <div class="hero-stat"><div class="stat-num">A–Z</div><div class="stat-label">Alfabeto completo</div></div>
-    <div class="hero-stat"><div class="stat-num">9</div><div class="stat-label">Familias tipográficas</div></div>
-  </div>
-</section>
-
-<div id="galeria" class="filter-bar" role="group" aria-label="Filtrar por clasificación tipográfica">
-  <button class="filter-btn active" data-filter="all">Todas</button>
-  <button class="filter-btn" data-filter="Serif Esenciales">Serif</button>
-  <button class="filter-btn" data-filter="Sans Serif Esenciales">Sans Serif</button>
-  <button class="filter-btn" data-filter="Romanas, Venecianas o Humanistas">Humanistas</button>
-  <button class="filter-btn" data-filter="Garaldas, Elzevirianas, Aldinas">Garaldas</button>
-  <button class="filter-btn" data-filter="Romanas de transición">Transición</button>
-  <button class="filter-btn" data-filter="Didonas">Didonas</button>
-  <button class="filter-btn" data-filter="Mecanas, Egipcias">Mecanas</button>
-  <button class="filter-btn" data-filter="Grotescas">Grotescas</button>
-  <button class="filter-btn" data-filter="Neogrotescas">Neogrotescas</button>
-  <button class="filter-btn" data-filter="Geométricas">Geométricas</button>
-  <button class="filter-btn" data-filter="Lineales humanistas">Lineales</button>
-</div>
-
-<div class="gallery-label">
-  <span id="gallery-count">Cargando…</span>
-  <span>A → Z</span>
-</div>
-
-<main>
-  <div id="alphabet-grid" class="alphabet-grid" aria-live="polite">
-    <div class="loading-grid">
-      <div class="spinner"></div>
-      <p>Cargando el catálogo…</p>
+  <header class="site-header">
+    <div class="site-logo">
+      Abecedario de Anuros
+      <span>— catálogo tipográfico</span>
     </div>
-  </div>
-</main>
+    <nav class="site-nav">
+      <a href="#galeria">Galería</a>
+      <a href="#proyecto">Proyecto</a>
+      <a href="#flipbook">Flipbook</a>
+    </nav>
+  </header>
 
-<section id="proyecto" class="about-section">
-  <div class="about-col">
-    <p class="about-eyebrow">El proyecto</p>
-    <h2>Tipografía y biodiversidad</h2>
-    <p>
-      <em>Abecedario de Anuros</em> nace de la intersección entre la tipografía 
-      y la biodiversidad anfibia. Cada letra tiene asignada una tipografía representativa
-      de su época y corriente estética, y una especie de anuro cuyo nombre comienza con esa letra.
-    </p>
-    <p>
-      Las ilustraciones fueron realizadas digitalmente — la rana y la letra conviven en la
-      misma composición, sin fondo, permitiendo que cada especie interactúe de forma natural
-      con su tipografía. El catálogo impreso incluye códigos QR que enlazan a esta experiencia digital.
-    </p>
-  </div>
-  <div class="about-col">
-    <p class="about-eyebrow">Las tipografías</p>
-    <p>
-      La selección recorre las grandes familias tipográficas
-    </p>
-    <p>
-      En cada página de especie, la tipografía asignada se usa para mostrar la letra,
-      el nombre de la especie y todos los textos, creando coherencia visual
-      entre forma tipográfica y forma biológica.
-    </p>
-  </div>
-</section>
+  <section class="hero">
+    <div class="hero-main fade-up">
+      <p class="hero-eyebrow">Catálogo tipográfico · 2026</p>
+      <h1 class="hero-h1">Abecedario<br><em>de Anuros</em></h1>
+      <p class="hero-desc">
+        Cada letra del alfabeto latino reúne una tipografía histórica
+        y una especie de rana o sapo. Letra, forma y vida silvestre.
+      </p>
+      <a href="#galeria" class="hero-cta">Explorar el catálogo →</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="stat-num">26</div>
+        <div class="stat-label">Especies</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-num">26</div>
+        <div class="stat-label">Tipografías</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-num">A–Z</div>
+        <div class="stat-label">Alfabeto completo</div>
+      </div>
+      <div class="hero-stat">
+        <div class="stat-num">9</div>
+        <div class="stat-label">Familias tipográficas</div>
+      </div>
+    </div>
+  </section>
 
-<footer class="site-footer">
-  <p class="footer-copy">© 2026 Abecedario de Anuros</p>
-  <button class="admin-trigger" id="admin-trigger" title="Administración" aria-label="Panel de administración">·</button>
-</footer>
+  <div id="galeria" class="filter-bar" role="group" aria-label="Filtrar por clasificación tipográfica">
+    <button class="filter-btn active" data-filter="all">Todas</button>
+    <button class="filter-btn" data-filter="Serif Esenciales">Serif</button>
+    <button class="filter-btn" data-filter="Sans Serif Esenciales">Sans Serif</button>
+    <button class="filter-btn" data-filter="Romanas, Venecianas o Humanistas">Humanistas</button>
+    <button class="filter-btn" data-filter="Garaldas, Elzevirianas, Aldinas">Garaldas</button>
+    <button class="filter-btn" data-filter="Romanas de transición">Transición</button>
+    <button class="filter-btn" data-filter="Didonas">Didonas</button>
+    <button class="filter-btn" data-filter="Mecanas, Egipcias">Mecanas</button>
+    <button class="filter-btn" data-filter="Grotescas">Grotescas</button>
+    <button class="filter-btn" data-filter="Neogrotescas">Neogrotescas</button>
+    <button class="filter-btn" data-filter="Geométricas">Geométricas</button>
+    <button class="filter-btn" data-filter="Lineales humanistas">Lineales</button>
+  </div>
 
-<!-- ══════════════════════════════════════════════════════════════
+  <div class="gallery-label">
+    <span id="gallery-count">Cargando…</span>
+    <span>A → Z</span>
+  </div>
+
+  <main>
+    <div id="alphabet-grid" class="alphabet-grid" aria-live="polite">
+      <div class="loading-grid">
+        <div class="spinner"></div>
+        <p>Cargando el catálogo…</p>
+      </div>
+    </div>
+  </main>
+
+  <section id="proyecto" class="about-section">
+    <div class="about-col">
+      <p class="about-eyebrow">El proyecto</p>
+      <h2>Tipografía y biodiversidad</h2>
+      <p>
+        <em>Abecedario de Anuros</em> nace de la intersección entre la tipografía
+        y la biodiversidad anfibia. Cada letra tiene asignada una tipografía representativa
+        de su época y corriente estética, y una especie de anuro cuyo nombre comienza con esa letra.
+      </p>
+      <p>
+        Las ilustraciones fueron realizadas digitalmente — la rana y la letra conviven en la
+        misma composición, sin fondo, permitiendo que cada especie interactúe de forma natural
+        con su tipografía. El catálogo impreso incluye códigos QR que enlazan a esta experiencia digital.
+      </p>
+    </div>
+    <div class="about-col">
+      <p class="about-eyebrow">Las tipografías</p>
+      <p>
+        La selección recorre las grandes familias tipográficas
+      </p>
+      <p>
+        En cada página de especie, la tipografía asignada se usa para mostrar la letra,
+        el nombre de la especie y todos los textos, creando coherencia visual
+        entre forma tipográfica y forma biológica.
+      </p>
+    </div>
+  </section>
+
+  <!-- ── Flipbook ─────────────────────────────────────────────────── -->
+  <section id="flipbook" class="flipbook-section">
+    <div class="flipbook-inner">
+      <div class="flipbook-text">
+        <p class="about-eyebrow">Libro digital</p>
+        <h2>Ver el flipbook</h2>
+        <p>
+          El catálogo impreso completo está disponible como flipbook interactivo.
+          Podés hojearlo página a página o descargarlo desde el enlace.
+        </p>
+        <a href="#" id="flipbook-link" class="flipbook-btn" target="_blank" rel="noopener">
+          Abrir flipbook ↗
+        </a>
+        <p class="flipbook-hint" id="flipbook-hint" style="display:none"></p>
+      </div>
+      <div class="flipbook-preview" id="flipbook-preview">
+        <div class="flipbook-frame-wrap">
+          <div class="flipbook-placeholder" id="flipbook-placeholder">
+            <span>📖</span>
+            <p>Pega el link del flipbook<br>en el admin para previsualizar</p>
+          </div>
+          <iframe id="flipbook-iframe" class="flipbook-iframe" src="" title="Flipbook — Abecedario de Anuros"
+            allowfullscreen style="display:none"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-main">
+      <div class="footer-proyecto">
+        <p class="footer-title">Abecedario de Anuros</p>
+        <p class="footer-sub">Catálogo tipográfico ilustrado · 2026</p>
+      </div>
+      <div class="footer-creditos">
+        <p>Trabajo para el <strong>Taller de Tipografía, Composición y Diagramación</strong></p>
+        <p>Facultad de Artes · Universidad Nacional de Colombia</p>
+        <p class="footer-autor">Juan Angel Rubio Quiroz · 3.er semestre</p>
+      </div>
+      <div class="footer-copy-wrap">
+        <p class="footer-copy">© 2026</p>
+        <button class="admin-trigger" id="admin-trigger" title="Administración"
+          aria-label="Panel de administración">·</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════════════════════════════
      SCRIPTS
 ════════════════════════════════════════════════════════════════ -->
-<script>
+  <script>
 
-/* ── Forest background — animado, denso, natural ───────────────── */
-(function() {
-  const canvas = document.getElementById('forest-canvas');
-  const ctx    = canvas.getContext('2d');
-  let W, H, leaves = [];
+    /* ── Forest background — optimizado para móvil/tablet ─────────── */
+    (function () {
+      const canvas = document.getElementById('forest-canvas');
+      const ctx = canvas.getContext('2d');
+      let W, H, leaves = [];
 
-  // Pseudo-random determinista por semilla
-  function seededRand(seed) {
-    const vals = [];
-    let s = seed;
-    return function() {
-      s = (s * 9301 + 49297) % 233280;
-      return s / 233280;
-    };
-  }
+      // Detectar capacidad del dispositivo
+      const isMobile = window.innerWidth < 640;
+      const isTablet = window.innerWidth < 1024 && !isMobile;
+      const isLowPow = isMobile || isTablet || navigator.hardwareConcurrency <= 4;
 
-  // Dibuja una hoja tropical con tallo y punta asimétrica
-  function drawLeaf(ctx, x, y, len, wid, angle, vein, fillColor, alpha) {
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.translate(x, y);
-    ctx.rotate(angle);
+      // En dispositivos lentos, reducir drásticamente los efectos
+      const VEIN_DETAIL = !isLowPow;   // nervaduras secundarias solo en desktop
+      const SHADOW_ON = !isLowPow;   // sombras solo en desktop
+      const DENSITY_MULT = isMobile ? 0.35 : isTablet ? 0.55 : 1.0;
+      const FPS_CAP = isMobile ? 24 : isTablet ? 30 : 60;
+      const FRAME_MS = 1000 / FPS_CAP;
+      let lastFrame = 0;
 
-    // Sombra suave
-    ctx.shadowColor   = 'rgba(0,0,0,0.45)';
-    ctx.shadowBlur    = len * 0.18;
-    ctx.shadowOffsetX = len * 0.04;
-    ctx.shadowOffsetY = len * 0.06;
+      function seededRand(seed) {
+        let s = seed;
+        return function () {
+          s = (s * 9301 + 49297) % 233280;
+          return s / 233280;
+        };
+      }
 
-    // Forma de hoja — bezier asimétrica (más realista)
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.bezierCurveTo( wid * 0.9,  -len * 0.2,   wid * 1.0,  -len * 0.7,  0, -len);
-    ctx.bezierCurveTo(-wid * 0.85, -len * 0.7,  -wid * 0.8,  -len * 0.2,  0,  0);
-    ctx.fillStyle = fillColor;
-    ctx.fill();
+      function drawLeaf(ctx, x, y, len, wid, angle, vein, fillColor, alpha) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(x, y);
+        ctx.rotate(angle);
 
-    ctx.shadowColor = 'transparent';
+        if (SHADOW_ON) {
+          ctx.shadowColor = 'rgba(0,0,0,0.45)';
+          ctx.shadowBlur = len * 0.18;
+          ctx.shadowOffsetX = len * 0.04;
+          ctx.shadowOffsetY = len * 0.06;
+        }
 
-    // Nervadura central
-    if (vein) {
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.quadraticCurveTo(wid * 0.06, -len * 0.5, 0, -len);
-      ctx.strokeStyle = 'rgba(138,181,90,0.18)';
-      ctx.lineWidth   = Math.max(0.4, len * 0.008);
-      ctx.globalAlpha = alpha * 0.6;
-      ctx.stroke();
-
-      // Nervaduras secundarias (3–4 pares)
-      const pairs = 3 + Math.floor(len / 120);
-      for (let p = 1; p <= pairs; p++) {
-        const ty  = -len * (p / (pairs + 1));
-        const ext = wid * (0.55 - p * 0.06);
         ctx.beginPath();
-        ctx.moveTo(0, ty);
-        ctx.quadraticCurveTo( ext * 0.5, ty - len * 0.06,  ext, ty - len * 0.03);
-        ctx.moveTo(0, ty);
-        ctx.quadraticCurveTo(-ext * 0.5, ty - len * 0.06, -ext, ty - len * 0.03);
-        ctx.strokeStyle = 'rgba(138,181,90,0.12)';
-        ctx.lineWidth   = Math.max(0.3, len * 0.005);
-        ctx.globalAlpha = alpha * 0.4;
-        ctx.stroke();
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(wid * 0.9, -len * 0.2, wid * 1.0, -len * 0.7, 0, -len);
+        ctx.bezierCurveTo(-wid * 0.85, -len * 0.7, -wid * 0.8, -len * 0.2, 0, 0);
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+
+        if (SHADOW_ON) ctx.shadowColor = 'transparent';
+
+        if (vein) {
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.quadraticCurveTo(wid * 0.06, -len * 0.5, 0, -len);
+          ctx.strokeStyle = 'rgba(138,181,90,0.18)';
+          ctx.lineWidth = Math.max(0.4, len * 0.008);
+          ctx.globalAlpha = alpha * 0.6;
+          ctx.stroke();
+
+          // Nervaduras secundarias solo en desktop
+          if (VEIN_DETAIL) {
+            const pairs = 3 + Math.floor(len / 120);
+            for (let p = 1; p <= pairs; p++) {
+              const ty = -len * (p / (pairs + 1));
+              const ext = wid * (0.55 - p * 0.06);
+              ctx.beginPath();
+              ctx.moveTo(0, ty);
+              ctx.quadraticCurveTo(ext * 0.5, ty - len * 0.06, ext, ty - len * 0.03);
+              ctx.moveTo(0, ty);
+              ctx.quadraticCurveTo(-ext * 0.5, ty - len * 0.06, -ext, ty - len * 0.03);
+              ctx.strokeStyle = 'rgba(138,181,90,0.12)';
+              ctx.lineWidth = Math.max(0.3, len * 0.005);
+              ctx.globalAlpha = alpha * 0.4;
+              ctx.stroke();
+            }
+          }
+        }
+        ctx.restore();
       }
-    }
 
-    ctx.restore();
-  }
+      function buildLeaves(rand) {
+        leaves = [];
+        const total = Math.floor(W * H / 5500 * DENSITY_MULT);
 
-  // Crea la escena de hojas con posiciones fijas + parámetros de animación
-  function buildLeaves(rand) {
-    leaves = [];
-    const total = Math.floor(W * H / 5500);
+        for (let i = 0; i < Math.floor(total * 0.28); i++) {
+          const side = rand() < 0.5 ? -1 : 1;
+          leaves.push({
+            x: rand() < 0.6 ? rand() * W * 0.3 * side + (side > 0 ? 0 : W) : rand() * W,
+            y: rand() * H * 0.45,
+            len: 160 + rand() * 220, wid: 0,
+            angle: (rand() - 0.5) * Math.PI * 0.7 + (side > 0 ? 0.2 : -0.2),
+            baseAngle: 0, phase: rand() * Math.PI * 2,
+            speed: 0.0003 + rand() * 0.0004, swing: 0.018 + rand() * 0.022,
+            layer: 0, vein: true, alpha: 0.82 + rand() * 0.18, hue: rand() * 18,
+          });
+        }
+        for (let i = 0; i < Math.floor(total * 0.38); i++) {
+          leaves.push({
+            x: rand() * W, y: rand() * H * 0.78,
+            len: 70 + rand() * 120, wid: 0,
+            angle: (rand() - 0.5) * Math.PI * 0.85, baseAngle: 0,
+            phase: rand() * Math.PI * 2, speed: 0.0005 + rand() * 0.0006,
+            swing: 0.025 + rand() * 0.03, layer: 1, vein: rand() > 0.3,
+            alpha: 0.7 + rand() * 0.28, hue: rand() * 22,
+          });
+        }
+        for (let i = 0; i < Math.floor(total * 0.34); i++) {
+          leaves.push({
+            x: rand() * W, y: rand() * H * 0.95,
+            len: 28 + rand() * 65, wid: 0,
+            angle: (rand() - 0.5) * Math.PI, baseAngle: 0,
+            phase: rand() * Math.PI * 2, speed: 0.0008 + rand() * 0.001,
+            swing: 0.035 + rand() * 0.04, layer: 2, vein: rand() > 0.55,
+            alpha: 0.55 + rand() * 0.38, hue: rand() * 26,
+          });
+        }
+        leaves.forEach(l => {
+          l.wid = l.len * (0.28 + Math.random() * 0.18);
+          l.baseAngle = l.angle;
+        });
+        leaves.sort((a, b) => a.layer - b.layer);
+      }
 
-    // Hojas del dosel — muy grandes, arriba y bordes, poco movimiento
-    for (let i = 0; i < Math.floor(total * 0.28); i++) {
-      const side = rand() < 0.5 ? -1 : 1;
-      leaves.push({
-        x:      rand() < 0.6 ? rand() * W * 0.3 * side + (side > 0 ? 0 : W) : rand() * W,
-        y:      rand() * H * 0.45,
-        len:    160 + rand() * 220,
-        wid:    0,
-        angle:  (rand() - 0.5) * Math.PI * 0.7 + (side > 0 ? 0.2 : -0.2),
-        baseAngle: 0,
-        phase:  rand() * Math.PI * 2,
-        speed:  0.0003 + rand() * 0.0004,
-        swing:  0.018 + rand() * 0.022,
-        layer:  0,
-        vein:   true,
-        alpha:  0.82 + rand() * 0.18,
-        hue:    rand() * 18,
-      });
-    }
+      const palettes = [
+        ['#091508', '#0b1a09', '#0d1f0a', '#0a1707'],
+        ['#0e2109', '#112608', '#132b0a', '#0f230b'],
+        ['#142e0b', '#17330d', '#19380e', '#162f0c'],
+      ];
+      function getColor(leaf) {
+        const p = palettes[leaf.layer];
+        return p[Math.floor(leaf.hue / 8) % p.length];
+      }
 
-    // Hojas medias — medio pantalla
-    for (let i = 0; i < Math.floor(total * 0.38); i++) {
-      leaves.push({
-        x:      rand() * W,
-        y:      rand() * H * 0.78,
-        len:    70 + rand() * 120,
-        wid:    0,
-        angle:  (rand() - 0.5) * Math.PI * 0.85,
-        baseAngle: 0,
-        phase:  rand() * Math.PI * 2,
-        speed:  0.0005 + rand() * 0.0006,
-        swing:  0.025 + rand() * 0.03,
-        layer:  1,
-        vein:   rand() > 0.3,
-        alpha:  0.7 + rand() * 0.28,
-        hue:    rand() * 22,
-      });
-    }
+      function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+        const rand = seededRand(77);
+        buildLeaves(rand);
+      }
 
-    // Hojas pequeñas de primer plano — más movimiento
-    for (let i = 0; i < Math.floor(total * 0.34); i++) {
-      leaves.push({
-        x:      rand() * W,
-        y:      rand() * H * 0.95,
-        len:    28 + rand() * 65,
-        wid:    0,
-        angle:  (rand() - 0.5) * Math.PI,
-        baseAngle: 0,
-        phase:  rand() * Math.PI * 2,
-        speed:  0.0008 + rand() * 0.001,
-        swing:  0.035 + rand() * 0.04,
-        layer:  2,
-        vein:   rand() > 0.55,
-        alpha:  0.55 + rand() * 0.38,
-        hue:    rand() * 26,
-      });
-    }
+      function render(ts) {
+        requestAnimationFrame(render);
+        // Cap de FPS — saltar frame si no ha pasado suficiente tiempo
+        if (ts - lastFrame < FRAME_MS) return;
+        lastFrame = ts;
 
-    // Calcular ancho proporcional y ángulo base
-    leaves.forEach(l => {
-      l.wid       = l.len * (0.28 + Math.random() * 0.18);
-      l.baseAngle = l.angle;
-    });
+        ctx.clearRect(0, 0, W, H);
 
-    // Ordenar por layer para pintar de atrás hacia adelante
-    leaves.sort((a, b) => a.layer - b.layer);
-  }
+        const bg = ctx.createLinearGradient(0, 0, 0, H);
+        bg.addColorStop(0, '#060e04');
+        bg.addColorStop(0.5, '#080d06');
+        bg.addColorStop(1, '#090f07');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, W, H);
 
-  // Paleta de verdes nocturnos por layer
-  const palettes = [
-    // layer 0 — dosel lejano, más oscuro
-    ['#091508','#0b1a09','#0d1f0a','#0a1707'],
-    // layer 1 — medio
-    ['#0e2109','#112608','#132b0a','#0f230b'],
-    // layer 2 — primer plano, levemente más claro
-    ['#142e0b','#17330d','#19380e','#162f0c'],
-  ];
+        if (!isLowPow) {
+          // Rayo de luz solo en desktop
+          const ray = ctx.createRadialGradient(W * 0.35, 0, 0, W * 0.35, H * 0.3, W * 0.7);
+          ray.addColorStop(0, 'rgba(138,181,90,0.04)');
+          ray.addColorStop(0.5, 'rgba(100,150,60,0.015)');
+          ray.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = ray;
+          ctx.fillRect(0, 0, W, H);
+        }
 
-  function getColor(leaf) {
-    const p = palettes[leaf.layer];
-    return p[Math.floor(leaf.hue / 8) % p.length];
-  }
+        leaves.forEach(l => {
+          const sway = Math.sin(ts * l.speed + l.phase) * l.swing;
+          drawLeaf(ctx, l.x, l.y, l.len, l.wid, l.baseAngle + sway, l.vein, getColor(l), l.alpha);
+        });
 
-  function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-    const rand = seededRand(77);
-    buildLeaves(rand);
-  }
+        const fog = ctx.createLinearGradient(0, H * 0.72, 0, H);
+        fog.addColorStop(0, 'rgba(8,13,6,0)');
+        fog.addColorStop(0.6, 'rgba(8,12,5,0.55)');
+        fog.addColorStop(1, 'rgba(7,11,5,0.82)');
+        ctx.fillStyle = fog;
+        ctx.globalAlpha = 1;
+        ctx.fillRect(0, H * 0.72, W, H);
+      }
 
-  function render(ts) {
-    ctx.clearRect(0, 0, W, H);
-
-    // Fondo — gradiente que va de negro-verde muy oscuro arriba a un poco menos negro abajo
-    const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0,   '#060e04');
-    bg.addColorStop(0.5, '#080d06');
-    bg.addColorStop(1,   '#090f07');
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, W, H);
-
-    // Velo de luz filtrando desde arriba (rayo de luna/dosel)
-    const ray = ctx.createRadialGradient(W * 0.35, 0, 0, W * 0.35, H * 0.3, W * 0.7);
-    ray.addColorStop(0,   'rgba(138,181,90,0.04)');
-    ray.addColorStop(0.5, 'rgba(100,150,60,0.015)');
-    ray.addColorStop(1,   'rgba(0,0,0,0)');
-    ctx.fillStyle = ray;
-    ctx.fillRect(0, 0, W, H);
-
-    // Pintar hojas con animación de balanceo suave
-    leaves.forEach(l => {
-      const sway = Math.sin(ts * l.speed + l.phase) * l.swing;
-      drawLeaf(ctx, l.x, l.y, l.len, l.wid, l.baseAngle + sway, l.vein, getColor(l), l.alpha);
-    });
-
-    // Niebla base — profundidad
-    const fog = ctx.createLinearGradient(0, H * 0.72, 0, H);
-    fog.addColorStop(0,   'rgba(8,13,6,0)');
-    fog.addColorStop(0.6, 'rgba(8,12,5,0.55)');
-    fog.addColorStop(1,   'rgba(7,11,5,0.82)');
-    ctx.fillStyle = fog;
-    ctx.globalAlpha = 1;
-    ctx.fillRect(0, H * 0.72, W, H);
-
-    requestAnimationFrame(render);
-  }
-
-  window.addEventListener('resize', () => { resize(); });
-  resize();
-  requestAnimationFrame(render);
-})();
-
-/* ── Fireflies (luciérnagas) ───────────────────────────────────── */
-(function() {
-  const canvas = document.getElementById('firefly-canvas');
-  const ctx    = canvas.getContext('2d');
-  let W, H, flies = [];
-
-  function resize() {
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-
-  function createFly() {
-    return {
-      x:       Math.random() * W,
-      y:       Math.random() * H * 0.85,
-      vx:      (Math.random() - 0.5) * 0.3,
-      vy:      (Math.random() - 0.5) * 0.2,
-      radius:  1.2 + Math.random() * 1.4,
-      phase:   Math.random() * Math.PI * 2,
-      speed:   0.008 + Math.random() * 0.012,
-      hue:     Math.random() > 0.7 ? 80 : 65, // verde-amarillo o verde
-    };
-  }
-
-  function init() {
+      window.addEventListener('resize', resize);
+      resize();
+      requestAnimationFrame(render);
+    })();
     resize();
-    const count = Math.min(55, Math.floor(W * H / 20000));
-    flies = Array.from({ length: count }, createFly);
-  }
+    requestAnimationFrame(render);
+ 
 
-  function animate() {
-    ctx.clearRect(0, 0, W, H);
-    const now = performance.now() * 0.001;
+    /* ── Fireflies (luciérnagas) — optimizadas para móvil ─────────── */
+    (function () {
+      const canvas = document.getElementById('firefly-canvas');
+      const ctx = canvas.getContext('2d');
+      let W, H, flies = [];
 
-    flies.forEach(f => {
-      // Movimiento orgánico con Perlin-like wandering
-      f.x  += f.vx + Math.sin(now * f.speed * 7 + f.phase) * 0.4;
-      f.y  += f.vy + Math.cos(now * f.speed * 5 + f.phase * 1.3) * 0.25;
+      const isMobile = window.innerWidth < 640;
+      const isTablet = window.innerWidth < 1024 && !isMobile;
+      const MAX_FLIES = isMobile ? 12 : isTablet ? 25 : 55;
+      const USE_GLOW = !isMobile; // gradiente radial solo en desktop/tablet
+      const FPS_CAP = isMobile ? 20 : 40;
+      const FRAME_MS = 1000 / FPS_CAP;
+      let lastFrame = 0;
 
-      // Rebote suave en bordes
-      if (f.x < -20) f.x = W + 20;
-      if (f.x > W + 20) f.x = -20;
-      if (f.y < -20) f.y = H * 0.85;
-      if (f.y > H * 0.85) f.y = -20;
-
-      // Pulso de brillo
-      const pulse = (Math.sin(now * f.speed * 40 + f.phase) + 1) / 2;
-      const alpha  = 0.15 + pulse * 0.7;
-      const glow   = f.radius * (1.5 + pulse * 2.5);
-
-      // Halo exterior
-      const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, glow * 3);
-      grad.addColorStop(0,   `hsla(${f.hue}, 80%, 70%, ${alpha * 0.9})`);
-      grad.addColorStop(0.4, `hsla(${f.hue}, 70%, 55%, ${alpha * 0.3})`);
-      grad.addColorStop(1,   `hsla(${f.hue}, 60%, 40%, 0)`);
-
-      ctx.beginPath();
-      ctx.arc(f.x, f.y, glow * 3, 0, Math.PI * 2);
-      ctx.fillStyle = grad;
-      ctx.fill();
-
-      // Núcleo
-      ctx.beginPath();
-      ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${f.hue + 15}, 90%, 85%, ${alpha})`;
-      ctx.fill();
-    });
-
-    requestAnimationFrame(animate);
-  }
-
-  window.addEventListener('resize', resize);
-  init();
-  animate();
-})();
-
-
-
-/* ── Transición de página al entrar a una rana ─────────────────── */
-function navigateToRana(letra) {
-  const overlay = document.getElementById('page-transition');
-  overlay.style.background = 'radial-gradient(ellipse at center, rgba(8,20,4,0) 0%, rgba(8,13,6,0.96) 100%)';
-  overlay.style.opacity = '1';
-  overlay.style.transition = 'opacity 0.55s ease';
-  setTimeout(() => {
-    window.location.href = `rana.html?letra=${letra}`;
-  }, 480);
-}
-</script>
-
-<script type="module">
-  import { initializeApp }               from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-  import { firebaseConfig }              from "./js/firebase-config.js";
-  import { RANAS_DATA, FONT_MAP, IUCN_CONFIG } from "./js/data.js";
-
-  let ranas = [];
-  const loadedFonts = new Set();
-
-  function preloadGoogleFonts(list) {
-    const params = [];
-    list.forEach(r => {
-      const fi = FONT_MAP[r.tipografia];
-      if (fi?.googleFont && !loadedFonts.has(r.tipografia)) {
-        params.push(`family=${fi.googleFont}`);
-        loadedFonts.add(r.tipografia);
+      function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
       }
-    });
-    if (!params.length) return;
-    const link = document.createElement("link");
-    link.rel  = "stylesheet";
-    link.href = `https://fonts.googleapis.com/css2?${params.join("&")}&display=swap`;
-    document.head.appendChild(link);
-  }
 
-  function injectLocalFont(tipografia) {
-    if (loadedFonts.has(tipografia)) return;
-    loadedFonts.add(tipografia);
-    const fi = FONT_MAP[tipografia];
-    if (!fi?.localFile) return;
-    const s = document.createElement("style");
-    s.textContent = `
+      function createFly() {
+        return {
+          x: Math.random() * W,
+          y: Math.random() * H * 0.85,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.2,
+          radius: 1.2 + Math.random() * 1.4,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.008 + Math.random() * 0.012,
+          hue: Math.random() > 0.7 ? 80 : 65,
+        };
+      }
+
+      function init() {
+        resize();
+        const count = Math.min(MAX_FLIES, Math.floor(W * H / 20000));
+        flies = Array.from({ length: count }, createFly);
+      }
+
+      function animate(ts) {
+        requestAnimationFrame(animate);
+        if (ts - lastFrame < FRAME_MS) return;
+        lastFrame = ts;
+
+        ctx.clearRect(0, 0, W, H);
+        const now = ts * 0.001;
+
+        flies.forEach(f => {
+          f.x += f.vx + Math.sin(now * f.speed * 7 + f.phase) * 0.4;
+          f.y += f.vy + Math.cos(now * f.speed * 5 + f.phase * 1.3) * 0.25;
+          if (f.x < -20) f.x = W + 20;
+          if (f.x > W + 20) f.x = -20;
+          if (f.y < -20) f.y = H * 0.85;
+          if (f.y > H * 0.85) f.y = -20;
+
+          const pulse = (Math.sin(now * f.speed * 40 + f.phase) + 1) / 2;
+          const alpha = 0.15 + pulse * 0.7;
+          const glow = f.radius * (1.5 + pulse * 2.5);
+
+          if (USE_GLOW) {
+            const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, glow * 3);
+            grad.addColorStop(0, `hsla(${f.hue}, 80%, 70%, ${alpha * 0.9})`);
+            grad.addColorStop(0.4, `hsla(${f.hue}, 70%, 55%, ${alpha * 0.3})`);
+            grad.addColorStop(1, `hsla(${f.hue}, 60%, 40%, 0)`);
+            ctx.beginPath();
+            ctx.arc(f.x, f.y, glow * 3, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+          }
+
+          // Núcleo siempre
+          ctx.beginPath();
+          ctx.arc(f.x, f.y, f.radius * (USE_GLOW ? 1 : glow * 0.5), 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${f.hue + 15}, 90%, 85%, ${alpha})`;
+          ctx.fill();
+        });
+      }
+
+      window.addEventListener('resize', resize);
+      init();
+      requestAnimationFrame(animate);
+    })();
+
+
+
+    /* ── Transición de página al entrar a una rana ─────────────────── */
+    function navigateToRana(letra) {
+      const overlay = document.getElementById('page-transition');
+      overlay.style.background = 'radial-gradient(ellipse at center, rgba(8,20,4,0) 0%, rgba(8,13,6,0.96) 100%)';
+      overlay.style.opacity = '1';
+      overlay.style.transition = 'opacity 0.55s ease';
+      setTimeout(() => {
+        window.location.href = `rana.html?letra=${letra}`;
+      }, 480);
+    }
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { firebaseConfig } from "./js/firebase-config.js";
+    import { RANAS_DATA, FONT_MAP, IUCN_CONFIG } from "./js/data.js";
+
+    let ranas = [];
+    const loadedFonts = new Set();
+
+    function preloadGoogleFonts(list) {
+      const params = [];
+      list.forEach(r => {
+        const fi = FONT_MAP[r.tipografia];
+        if (fi?.googleFont && !loadedFonts.has(r.tipografia)) {
+          params.push(`family=${fi.googleFont}`);
+          loadedFonts.add(r.tipografia);
+        }
+      });
+      if (!params.length) return;
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = `https://fonts.googleapis.com/css2?${params.join("&")}&display=swap`;
+      document.head.appendChild(link);
+    }
+
+    function injectLocalFont(tipografia) {
+      if (loadedFonts.has(tipografia)) return;
+      loadedFonts.add(tipografia);
+      const fi = FONT_MAP[tipografia];
+      if (!fi?.localFile) return;
+      const s = document.createElement("style");
+      s.textContent = `
       @font-face {
         font-family: '${tipografia}';
         src: url('fonts/${fi.localFile}/${fi.localFile}.woff2') format('woff2'),
@@ -467,57 +512,57 @@ function navigateToRana(letra) {
              url('fonts/${fi.localFile}/${fi.localFile}-italic.woff') format('woff');
         font-weight: normal; font-style: italic; font-display: swap;
       }`;
-    document.head.appendChild(s);
-  }
-
-  const fontObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      injectLocalFont(entry.target.dataset.tipografia);
-      fontObserver.unobserve(entry.target);
-    });
-  }, { rootMargin: "200px" });
-
-  async function loadRanas() {
-    try {
-      const app  = initializeApp(firebaseConfig);
-      const db   = getFirestore(app);
-      const snap = await getDocs(collection(db, "ranas"));
-      if (!snap.empty) {
-        const fsData = {};
-        snap.forEach(doc => { fsData[doc.id] = doc.data(); });
-        ranas = RANAS_DATA.map(r => ({ ...r, ...(fsData[r.letra] || {}) }));
-      } else { ranas = RANAS_DATA; }
-    } catch (e) {
-      console.warn("Firestore no disponible:", e.message);
-      ranas = RANAS_DATA;
-    }
-    preloadGoogleFonts(ranas);
-    renderGrid(ranas);
-    initFilters();
-  }
-
-  function getFontFamily(tipografia) {
-    return FONT_MAP[tipografia]?.cssFamily || `'${tipografia}', serif`;
-  }
-
-  function renderGrid(data) {
-    const grid    = document.getElementById("alphabet-grid");
-    const countEl = document.getElementById("gallery-count");
-    if (countEl) countEl.textContent = `${data.length} entrada${data.length !== 1 ? "s" : ""}`;
-
-    if (!data.length) {
-      grid.innerHTML = '<p class="loading-grid">No hay ranas para mostrar.</p>';
-      return;
+      document.head.appendChild(s);
     }
 
-    grid.innerHTML = data.map((r, i) => {
-      const iucn       = IUCN_CONFIG[r.estadoIUCN] || IUCN_CONFIG["DD"];
-      const hasImg     = r.imagenUrl && r.imagenUrl.trim() !== "";
-      const fontFamily = getFontFamily(r.tipografia);
-      const accent     = r.colorAccent || "var(--accent)";
+    const fontObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        injectLocalFont(entry.target.dataset.tipografia);
+        fontObserver.unobserve(entry.target);
+      });
+    }, { rootMargin: "200px" });
 
-      return `
+    async function loadRanas() {
+      try {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const snap = await getDocs(collection(db, "ranas"));
+        if (!snap.empty) {
+          const fsData = {};
+          snap.forEach(doc => { fsData[doc.id] = doc.data(); });
+          ranas = RANAS_DATA.map(r => ({ ...r, ...(fsData[r.letra] || {}) }));
+        } else { ranas = RANAS_DATA; }
+      } catch (e) {
+        console.warn("Firestore no disponible:", e.message);
+        ranas = RANAS_DATA;
+      }
+      preloadGoogleFonts(ranas);
+      renderGrid(ranas);
+      initFilters();
+    }
+
+    function getFontFamily(tipografia) {
+      return FONT_MAP[tipografia]?.cssFamily || `'${tipografia}', serif`;
+    }
+
+    function renderGrid(data) {
+      const grid = document.getElementById("alphabet-grid");
+      const countEl = document.getElementById("gallery-count");
+      if (countEl) countEl.textContent = `${data.length} entrada${data.length !== 1 ? "s" : ""}`;
+
+      if (!data.length) {
+        grid.innerHTML = '<p class="loading-grid">No hay ranas para mostrar.</p>';
+        return;
+      }
+
+      grid.innerHTML = data.map((r, i) => {
+        const iucn = IUCN_CONFIG[r.estadoIUCN] || IUCN_CONFIG["DD"];
+        const hasImg = r.imagenUrl && r.imagenUrl.trim() !== "";
+        const fontFamily = getFontFamily(r.tipografia);
+        const accent = r.colorAccent || "var(--accent)";
+
+        return `
         <article class="rana-card fade-up"
           style="animation-delay:${Math.min(i * 0.024, 0.48)}s; --rana-accent:${accent}"
           data-clasificacion="${r.clasificacion}"
@@ -530,8 +575,8 @@ function navigateToRana(letra) {
           <div class="card-letter-bg" aria-hidden="true">${r.letra.toUpperCase()}</div>
           <div class="card-frog">
             ${hasImg
-              ? `<img class="card-frog-img" src="${r.imagenUrl}" alt="Ilustración de ${r.nombreComun}" loading="lazy">`
-              : `<div class="placeholder-frog">🐸</div>`}
+            ? `<img class="card-frog-img" src="${r.imagenUrl}" alt="Ilustración de ${r.nombreComun}" loading="lazy">`
+            : `<div class="placeholder-frog">🐸</div>`}
           </div>
           <div class="card-info" style="--rana-font:${fontFamily}; --rana-accent:${accent}">
             <p class="card-meta">${r.letra.toUpperCase()}${r.letra} · ${r.tipografia}</p>
@@ -543,36 +588,81 @@ function navigateToRana(letra) {
             <span class="card-tipografia">${r.subclasificacion}</span>
           </div>
         </article>`;
-    }).join("");
+      }).join("");
 
-    grid.querySelectorAll(".rana-card[data-tipografia]").forEach(card => {
-      const fi = FONT_MAP[card.dataset.tipografia];
-      if (fi?.localFile) fontObserver.observe(card);
-    });
-  }
-
-  function initFilters() {
-    document.querySelectorAll(".filter-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        const f = btn.dataset.filter;
-        renderGrid(f === "all" ? ranas : ranas.filter(r =>
-          r.clasificacion === f || r.subclasificacion === f
-        ));
+      grid.querySelectorAll(".rana-card[data-tipografia]").forEach(card => {
+        const fi = FONT_MAP[card.dataset.tipografia];
+        if (fi?.localFile) fontObserver.observe(card);
       });
+    }
+
+    function initFilters() {
+      document.querySelectorAll(".filter-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          const f = btn.dataset.filter;
+          renderGrid(f === "all" ? ranas : ranas.filter(r =>
+            r.clasificacion === f || r.subclasificacion === f
+          ));
+        });
+      });
+    }
+
+    let clickCount = 0;
+    document.getElementById("admin-trigger").addEventListener("click", () => {
+      clickCount++;
+      if (clickCount >= 3) { window.location.href = "admin.html"; clickCount = 0; }
+      setTimeout(() => { clickCount = 0; }, 1500);
     });
-  }
 
-  let clickCount = 0;
-  document.getElementById("admin-trigger").addEventListener("click", () => {
-    clickCount++;
-    if (clickCount >= 3) { window.location.href = "admin.html"; clickCount = 0; }
-    setTimeout(() => { clickCount = 0; }, 1500);
-  });
+    loadRanas();
+    loadFlipbook();
 
-  loadRanas();
-</script>
+    async function loadFlipbook() {
+      // El link del flipbook se guarda en Firestore en doc("config","flipbook").url
+      // Si no hay Firestore o no está configurado, el botón queda con href="#"
+      // y el iframe permanece oculto.
+      try {
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const snap = await getDoc(doc(db, "config", "flipbook")).catch(() => null);
+        if (!snap?.exists?.()) return;
+        const url = snap.data().url;
+        if (!url) return;
+
+        // Actualizar el botón externo
+        const btn = document.getElementById("flipbook-link");
+        if (btn) btn.href = url;
+
+        // Intentar embeber como iframe si es una URL embebible
+        // (Issuu, Calameo, Flipsnack, Heyzine, etc. suelen tener /embed/ en la URL)
+        const iframeEl = document.getElementById("flipbook-iframe");
+        const placeholder = document.getElementById("flipbook-placeholder");
+        if (iframeEl && placeholder) {
+          // Construir URL de embed si es Issuu
+          let embedUrl = url;
+          const issuuMatch = url.match(/issuu\.com\/([^/]+)\/docs\/([^/?]+)/);
+          if (issuuMatch) {
+            embedUrl = `https://e.issuu.com/embed.html#${issuuMatch[1]}/${issuuMatch[2]}`;
+          }
+          iframeEl.src = embedUrl;
+          iframeEl.style.display = "block";
+          placeholder.style.display = "none";
+
+          // Mostrar URL como hint debajo del botón
+          const hint = document.getElementById("flipbook-hint");
+          if (hint) {
+            hint.textContent = url;
+            hint.style.display = "block";
+          }
+        }
+      } catch (e) {
+        // Sin flipbook configurado — silencioso
+      }
+    }
+  </script>
 
 </body>
+
 </html>

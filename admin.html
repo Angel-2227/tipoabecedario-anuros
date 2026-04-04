@@ -323,6 +323,27 @@
       </table>
     </div>
 
+    <!-- Flipbook -->
+    <div class="form-section" id="flipbook-section" style="margin-bottom:2rem">
+      <h3>Flipbook del catálogo</h3>
+      <p style="font-size:0.78rem;color:var(--text-muted);margin-bottom:1rem;font-style:italic">
+        Pega el link de tu flipbook (Issuu, Heyzine, Flipsnack, Calameo u otro).
+        Aparecerá embebido en la página principal y el botón "Abrir flipbook" apuntará a este link.
+      </p>
+      <div class="form-group">
+        <label>URL del flipbook</label>
+        <input type="url" id="f-flipbook-url" placeholder="https://issuu.com/usuario/docs/mi-libro o https://heyzine.com/flip-book/...">
+      </div>
+      <div id="flipbook-preview-wrap" style="display:none;margin-top:0.75rem">
+        <p style="font-family:var(--ui);font-size:0.56rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.5rem">Vista previa</p>
+        <div style="position:relative;padding-bottom:55%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <iframe id="flipbook-preview-iframe" src="" style="position:absolute;inset:0;width:100%;height:100%;border:none" allowfullscreen></iframe>
+        </div>
+      </div>
+      <button class="btn-save" id="btn-save-flipbook" style="margin-top:1rem">Guardar flipbook</button>
+      <p class="save-status" id="flipbook-status"></p>
+    </div>
+
     <!-- Grid letras -->
     <p style="font-family:var(--ui);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:0.75rem">
       Seleccionar especie
@@ -515,6 +536,7 @@
     renderLetterGrid();
     await loadHostedFonts();
     renderFontTable();
+    loadFlipbookAdmin();
   }
 
   // ══════════════════════════════════════════════════════════════════
@@ -755,6 +777,66 @@
       btn.disabled = false;
       btn.textContent = "Reintentar";
       if (tableBtn) { tableBtn.disabled = false; tableBtn.textContent = "Reintentar"; }
+    }
+  });
+
+  // ══════════════════════════════════════════════════════════════════
+  // FLIPBOOK
+  // ══════════════════════════════════════════════════════════════════
+
+  async function loadFlipbookAdmin() {
+    try {
+      const snap = await getDoc(doc(db, "config", "flipbook"));
+      if (snap.exists()) {
+        const url = snap.data().url || "";
+        document.getElementById("f-flipbook-url").value = url;
+        if (url) updateFlipbookPreview(url);
+      }
+    } catch(e) { console.warn("No se pudo cargar flipbook:", e.message); }
+  }
+
+  function getEmbedUrl(url) {
+    if (!url) return "";
+    // Issuu: https://issuu.com/usuario/docs/nombre → embed
+    const issuu = url.match(/issuu\.com\/([^/]+)\/docs\/([^/?#]+)/);
+    if (issuu) return `https://e.issuu.com/embed.html#${issuu[1]}/${issuu[2]}`;
+    // Heyzine, Flipsnack, Calameo — suelen aceptar la misma URL como embed
+    // Si ya es una URL de embed, usarla tal cual
+    return url;
+  }
+
+  function updateFlipbookPreview(url) {
+    const wrap   = document.getElementById("flipbook-preview-wrap");
+    const iframe = document.getElementById("flipbook-preview-iframe");
+    const embed  = getEmbedUrl(url);
+    if (embed) {
+      iframe.src = embed;
+      wrap.style.display = "block";
+    } else {
+      wrap.style.display = "none";
+    }
+  }
+
+  document.getElementById("f-flipbook-url").addEventListener("input", e => {
+    updateFlipbookPreview(e.target.value.trim());
+  });
+
+  document.getElementById("btn-save-flipbook").addEventListener("click", async () => {
+    const btn    = document.getElementById("btn-save-flipbook");
+    const status = document.getElementById("flipbook-status");
+    const url    = document.getElementById("f-flipbook-url").value.trim();
+    btn.disabled = true;
+    status.textContent = "Guardando…";
+    status.className   = "save-status";
+    try {
+      await setDoc(doc(db, "config", "flipbook"), { url }, { merge: true });
+      status.textContent = "✓ Flipbook guardado";
+      status.className   = "save-status success";
+    } catch(e) {
+      status.textContent = "Error: " + e.message;
+      status.className   = "save-status error";
+    } finally {
+      btn.disabled = false;
     }
   });
 
