@@ -14,6 +14,23 @@
 </head>
 <body>
 
+<!-- ── Canvases de fondo ──────────────────────────────────────── -->
+<canvas id="forest-canvas"></canvas>
+<canvas id="firefly-canvas"></canvas>
+
+<!-- ── Sonido ambiental ──────────────────────────────────────── -->
+<button class="ambient-toggle" id="ambient-toggle" title="Sonido ambiental" aria-label="Activar/desactivar sonido ambiental">
+  <div class="ripple"></div>
+  <span id="ambient-icon">🔇</span>
+</button>
+
+<!-- ── Overlay de transición ─────────────────────────────────── -->
+<div id="page-transition" style="
+  position:fixed;inset:0;z-index:9999;
+  background:radial-gradient(ellipse at center, rgba(20,40,10,0.0) 0%, rgba(8,13,6,0) 100%);
+  pointer-events:none;opacity:0;transition:opacity 0.6s ease;
+"></div>
+
 <header class="site-header">
   <div class="site-logo">
     Abecedario de Anuros
@@ -39,7 +56,7 @@
     <div class="hero-stat"><div class="stat-num">26</div><div class="stat-label">Especies</div></div>
     <div class="hero-stat"><div class="stat-num">26</div><div class="stat-label">Tipografías</div></div>
     <div class="hero-stat"><div class="stat-num">A–Z</div><div class="stat-label">Alfabeto completo</div></div>
-    <div class="hero-stat"><div class="stat-num">7</div><div class="stat-label">Familias tipográficas</div></div>
+    <div class="hero-stat"><div class="stat-num">9</div><div class="stat-label">Familias tipográficas</div></div>
   </div>
 </section>
 
@@ -109,6 +126,306 @@
   <button class="admin-trigger" id="admin-trigger" title="Administración" aria-label="Panel de administración">·</button>
 </footer>
 
+<!-- ══════════════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════════════ -->
+<script>
+/* ── Forest background (SVG-like con Canvas) ───────────────────── */
+(function() {
+  const canvas = document.getElementById('forest-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    drawForest();
+  }
+
+  // Genera una hoja SVG path como polígono suave
+  function leafPath(cx, cy, w, h, angle) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(0, -h/2);
+    ctx.bezierCurveTo( w/2, -h/4,  w/2,  h/4,  0,  h/2);
+    ctx.bezierCurveTo(-w/2,  h/4, -w/2, -h/4,  0, -h/2);
+    ctx.restore();
+  }
+
+  function drawForest() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const W = canvas.width;
+    const H = canvas.height;
+
+    // Fondo sólido oscuro — el body es transparent, el canvas LO ES todo
+    ctx.fillStyle = '#080d06';
+    ctx.fillRect(0, 0, W, H);
+
+    // Capas de hojas — más visibles, más contraste
+    const layers = [
+      // Hojas grandes de fondo, muy oscuras
+      { count: 14, minSize: 120, maxSize: 220, alpha: 1, yRange: 0.6,  color: '#0b1608' },
+      // Hojas medianas, algo más claras
+      { count: 20, minSize: 70,  maxSize: 140, alpha: 1, yRange: 0.75, color: '#0e1e0a' },
+      // Hojas pequeñas, primer plano más claro
+      { count: 26, minSize: 40,  maxSize: 90,  alpha: 1, yRange: 0.9,  color: '#122509' },
+      // Hojas muy grandes en bordes laterales (dosel)
+      { count: 8,  minSize: 180, maxSize: 300, alpha: 1, yRange: 0.4,  color: '#091408' },
+    ];
+    
+
+    // Semilla determinista para que no cambie en cada resize
+    let seed = 42;
+    function rand() {
+      seed = (seed * 9301 + 49297) % 233280;
+      return seed / 233280;
+    }
+
+    layers.forEach(layer => {
+      for (let i = 0; i < layer.count; i++) {
+        const x     = rand() * W;
+        const y     = rand() * H * layer.yRange;
+        const w     = layer.minSize + rand() * (layer.maxSize - layer.minSize);
+        const h     = w * (1.6 + rand() * 0.8);
+        const angle = (rand() - 0.5) * Math.PI * 0.9;
+
+        ctx.globalAlpha = 0.85 + rand() * 0.15;
+        ctx.fillStyle   = layer.color;
+        leafPath(x, y, w, h, angle);
+        ctx.fill();
+
+        // Nervadura central — más visible
+        ctx.globalAlpha = 0.35;
+        ctx.strokeStyle = 'rgba(138,181,90,0.25)';
+        ctx.lineWidth   = 0.7;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(0, -h/2);
+        ctx.lineTo(0,  h/2);
+        ctx.stroke();
+        ctx.restore();
+      }
+    });
+
+    ctx.globalAlpha = 1;
+
+    // Niebla inferior
+    const fogGrad = ctx.createLinearGradient(0, H * 0.6, 0, H);
+    fogGrad.addColorStop(0, 'rgba(8,13,6,0)');
+    fogGrad.addColorStop(1, 'rgba(8,13,6,0.85)');
+    ctx.fillStyle = fogGrad;
+    ctx.fillRect(0, H * 0.6, W, H);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+})();
+
+/* ── Fireflies (luciérnagas) ───────────────────────────────────── */
+(function() {
+  const canvas = document.getElementById('firefly-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, flies = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function createFly() {
+    return {
+      x:       Math.random() * W,
+      y:       Math.random() * H * 0.85,
+      vx:      (Math.random() - 0.5) * 0.3,
+      vy:      (Math.random() - 0.5) * 0.2,
+      radius:  1.2 + Math.random() * 1.4,
+      phase:   Math.random() * Math.PI * 2,
+      speed:   0.008 + Math.random() * 0.012,
+      hue:     Math.random() > 0.7 ? 80 : 65, // verde-amarillo o verde
+    };
+  }
+
+  function init() {
+    resize();
+    const count = Math.min(55, Math.floor(W * H / 20000));
+    flies = Array.from({ length: count }, createFly);
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    const now = performance.now() * 0.001;
+
+    flies.forEach(f => {
+      // Movimiento orgánico con Perlin-like wandering
+      f.x  += f.vx + Math.sin(now * f.speed * 7 + f.phase) * 0.4;
+      f.y  += f.vy + Math.cos(now * f.speed * 5 + f.phase * 1.3) * 0.25;
+
+      // Rebote suave en bordes
+      if (f.x < -20) f.x = W + 20;
+      if (f.x > W + 20) f.x = -20;
+      if (f.y < -20) f.y = H * 0.85;
+      if (f.y > H * 0.85) f.y = -20;
+
+      // Pulso de brillo
+      const pulse = (Math.sin(now * f.speed * 40 + f.phase) + 1) / 2;
+      const alpha  = 0.15 + pulse * 0.7;
+      const glow   = f.radius * (1.5 + pulse * 2.5);
+
+      // Halo exterior
+      const grad = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, glow * 3);
+      grad.addColorStop(0,   `hsla(${f.hue}, 80%, 70%, ${alpha * 0.9})`);
+      grad.addColorStop(0.4, `hsla(${f.hue}, 70%, 55%, ${alpha * 0.3})`);
+      grad.addColorStop(1,   `hsla(${f.hue}, 60%, 40%, 0)`);
+
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, glow * 3, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Núcleo
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.radius, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${f.hue + 15}, 90%, 85%, ${alpha})`;
+      ctx.fill();
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', resize);
+  init();
+  animate();
+})();
+
+/* ── Sonido ambiental (Web Audio API — lluvia generada) ────────── */
+(function() {
+  const btn  = document.getElementById('ambient-toggle');
+  const icon = document.getElementById('ambient-icon');
+  let ctx, masterGain, playing = false;
+  let noiseNode, filterNode, filterNode2, frogNodes = [];
+
+  function buildAudio() {
+    if (ctx) return;
+    ctx        = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = ctx.createGain();
+    masterGain.gain.value = 0;
+    masterGain.connect(ctx.destination);
+
+    // ── Ruido de lluvia ──────────────────────────────────────
+    const bufferSize = ctx.sampleRate * 3;
+    const buffer     = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data       = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1);
+    }
+    noiseNode = ctx.createBufferSource();
+    noiseNode.buffer = buffer;
+    noiseNode.loop   = true;
+
+    // Filtro paso-bajo para suavizar el ruido (lluvia suave)
+    filterNode = ctx.createBiquadFilter();
+    filterNode.type      = 'lowpass';
+    filterNode.frequency.value = 1400;
+    filterNode.Q.value   = 0.7;
+
+    filterNode2 = ctx.createBiquadFilter();
+    filterNode2.type     = 'highpass';
+    filterNode2.frequency.value = 220;
+
+    const rainGain = ctx.createGain();
+    rainGain.gain.value = 0.18;
+
+    noiseNode.connect(filterNode);
+    filterNode.connect(filterNode2);
+    filterNode2.connect(rainGain);
+    rainGain.connect(masterGain);
+    noiseNode.start();
+
+    // ── Croar ocasional de ranas (tonos sintéticos) ──────────
+    function scheduleFrog() {
+      if (!playing) return;
+      const delay     = 1.5 + Math.random() * 4;
+      const oscFreq   = 220 + Math.random() * 180; // La–Si rango anuro
+      const duration  = 0.06 + Math.random() * 0.1;
+      const repeats   = Math.floor(2 + Math.random() * 4);
+      const interval  = 0.09 + Math.random() * 0.08;
+
+      for (let r = 0; r < repeats; r++) {
+        const t = ctx.currentTime + delay + r * interval;
+
+        const osc  = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(oscFreq, t);
+        osc.frequency.linearRampToValueAtTime(oscFreq * 1.12, t + duration * 0.5);
+        osc.frequency.linearRampToValueAtTime(oscFreq * 0.92, t + duration);
+
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.045, t + duration * 0.2);
+        gain.gain.linearRampToValueAtTime(0,      t + duration);
+
+        // Leve reverb via delay
+        const del     = ctx.createDelay(0.3);
+        const delGain = ctx.createGain();
+        del.delayTime.value  = 0.12;
+        delGain.gain.value   = 0.25;
+
+        osc.connect(gain);
+        gain.connect(masterGain);
+        gain.connect(del);
+        del.connect(delGain);
+        delGain.connect(masterGain);
+
+        osc.start(t);
+        osc.stop(t + duration + 0.01);
+      }
+
+      setTimeout(scheduleFrog, delay * 1000);
+    }
+
+    // Arrancar croar cuando empiece el audio
+    window._scheduleFrog = scheduleFrog;
+  }
+
+  btn.addEventListener('click', () => {
+    buildAudio();
+    if (ctx.state === 'suspended') ctx.resume();
+
+    if (!playing) {
+      playing = true;
+      masterGain.gain.cancelScheduledValues(ctx.currentTime);
+      masterGain.gain.setValueAtTime(masterGain.gain.value, ctx.currentTime);
+      masterGain.gain.linearRampToValueAtTime(0.7, ctx.currentTime + 2.5);
+      btn.classList.add('playing');
+      icon.textContent = '🔊';
+      if (window._scheduleFrog) window._scheduleFrog();
+    } else {
+      playing = false;
+      masterGain.gain.cancelScheduledValues(ctx.currentTime);
+      masterGain.gain.setValueAtTime(masterGain.gain.value, ctx.currentTime);
+      masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
+      btn.classList.remove('playing');
+      icon.textContent = '🔇';
+    }
+  });
+})();
+
+/* ── Transición de página al entrar a una rana ─────────────────── */
+function navigateToRana(letra) {
+  const overlay = document.getElementById('page-transition');
+  overlay.style.background = 'radial-gradient(ellipse at center, rgba(8,20,4,0) 0%, rgba(8,13,6,0.96) 100%)';
+  overlay.style.opacity = '1';
+  overlay.style.transition = 'opacity 0.55s ease';
+  setTimeout(() => {
+    window.location.href = `rana.html?letra=${letra}`;
+  }, 480);
+}
+</script>
+
 <script type="module">
   import { initializeApp }               from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -118,7 +435,6 @@
   let ranas = [];
   const loadedFonts = new Set();
 
-  // Precarga todas las Google Fonts de una vez (son ligeras)
   function preloadGoogleFonts(list) {
     const params = [];
     list.forEach(r => {
@@ -135,7 +451,6 @@
     document.head.appendChild(link);
   }
 
-  // Inyecta font local (woff2) solo cuando la tarjeta entra al viewport
   function injectLocalFont(tipografia) {
     if (loadedFonts.has(tipografia)) return;
     loadedFonts.add(tipografia);
@@ -158,7 +473,6 @@
     document.head.appendChild(s);
   }
 
-  // IntersectionObserver: carga la fuente local cuando la tarjeta aparece
   const fontObserver = new IntersectionObserver(entries => {
     entries.forEach(entry => {
       if (!entry.isIntersecting) return;
@@ -208,13 +522,13 @@
 
       return `
         <article class="rana-card fade-up"
-          style="animation-delay:${Math.min(i * 0.024, 0.48)}s"
+          style="animation-delay:${Math.min(i * 0.024, 0.48)}s; --rana-accent:${accent}"
           data-clasificacion="${r.clasificacion}"
           data-subclasificacion="${r.subclasificacion}"
           data-tipografia="${r.tipografia}"
-          onclick="window.location='rana.html?letra=${r.letra}'"
+          onclick="navigateToRana('${r.letra}')"
           role="link" tabindex="0"
-          onkeydown="if(event.key==='Enter')window.location='rana.html?letra=${r.letra}'"
+          onkeydown="if(event.key==='Enter')navigateToRana('${r.letra}')"
           aria-label="${r.nombreComun} — letra ${r.letra.toUpperCase()}">
           <div class="card-letter-bg" aria-hidden="true">${r.letra.toUpperCase()}</div>
           <div class="card-frog">
@@ -234,7 +548,6 @@
         </article>`;
     }).join("");
 
-    // Observar tarjetas que necesitan fuentes locales
     grid.querySelectorAll(".rana-card[data-tipografia]").forEach(card => {
       const fi = FONT_MAP[card.dataset.tipografia];
       if (fi?.localFile) fontObserver.observe(card);
