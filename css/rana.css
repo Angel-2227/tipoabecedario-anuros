@@ -423,15 +423,26 @@
   font-size: 0.8rem; line-height: 1.78;
   color: var(--text-muted); padding: 0.8rem 0;
   border-bottom: 1px solid var(--border);
+  /* Evitar desbordamiento con URLs largas o texto sin espacios */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  overflow: hidden;
+  max-width: 100%;
+  min-width: 0;
 }
 .referencias-list li:last-child { border-bottom: none; }
 .referencias-list .ref-autor { color: var(--text); }
 .referencias-list .ref-titulo { font-style: italic; }
 .referencias-list .ref-fuente { color: var(--text-faint); }
 .referencias-list a {
-  color: var(--rana-accent); word-break: break-all;
+  color: var(--rana-accent);
+  /* break-all para URLs que no tienen espacios donde romper */
+  word-break: break-all;
+  overflow-wrap: break-word;
   text-decoration: underline; text-underline-offset: 2px;
   text-decoration-color: rgba(138,181,90,0.35);
+  display: inline;
+  max-width: 100%;
 }
 .referencias-list a:hover { text-decoration-color: var(--rana-accent); }
 
@@ -558,6 +569,59 @@
   opacity: 0.5; transition: opacity var(--transition);
 }
 .lightbox-close:hover { opacity: 1; }
+
+/* ── Rana fantasma flotante (scroll) ──────────────────────────────
+   Aparece pegada al lateral derecho mientras el usuario scrollea
+   por el contenido, después de pasar el hero.
+   Es la misma imagen pero tratada de forma completamente distinta:
+   pequeña, monocromática, con mezcla de color y translúcida.
+   ─────────────────────────────────────────────────────────────── */
+.rana-ghost {
+  position: fixed;
+  right: -90px;          /* empieza fuera de pantalla */
+  bottom: clamp(3rem, 8vh, 6rem);
+  width: clamp(100px, 10vw, 160px);
+  pointer-events: none;
+  z-index: 40;
+  transition:
+    right 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.55s ease;
+  opacity: 0;
+}
+
+/* Visible cuando la clase .ghost-visible se añade vía JS */
+.rana-ghost.ghost-visible {
+  right: clamp(0.5rem, 1.5vw, 1.5rem);
+  opacity: 1;
+}
+
+.rana-ghost img {
+  width: 100%;
+  /* Convertir a monocromático + teñir con el color de la rana */
+  filter:
+    grayscale(1)
+    sepia(0.6)
+    hue-rotate(var(--ghost-hue, 80deg))
+    saturate(1.4)
+    brightness(0.7)
+    opacity(0.5)
+    drop-shadow(0 4px 18px rgba(0,0,0,0.35));
+  transform-origin: bottom right;
+  animation: ghostFloat 9s ease-in-out infinite;
+}
+
+/* Flotación asíncrona — diferente a la del hero */
+@keyframes ghostFloat {
+  0%, 100% { transform: translateY(0) rotate(-2deg) scale(1); }
+  33%       { transform: translateY(-7px) rotate(0deg) scale(1.02); }
+  66%       { transform: translateY(4px) rotate(-3deg) scale(0.98); }
+}
+
+/* En móvil se achica más para no tapar contenido */
+@media (max-width: 640px) {
+  .rana-ghost { width: clamp(64px, 14vw, 90px); }
+  .rana-ghost.ghost-visible { right: 0.25rem; }
+}
 
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 640px) {
