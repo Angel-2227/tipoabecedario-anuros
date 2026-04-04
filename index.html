@@ -10,10 +10,113 @@
   <meta property="og:type" content="website">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css">
+
+  <style>
+    /* ── Foliage overlay — esquinas estratégicas ────────────────── */
+    #foliage-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      overflow: hidden;
+    }
+    #foliage-overlay svg.leaf-group {
+      position: absolute;
+      will-change: transform;
+    }
+
+    /* Solo 4 esquinas, tamaño contenido, sin tendriles laterales */
+    .leaf-tl { top: 0;    left: 0; }
+    .leaf-tr { top: 0;    right: 0;    transform: scaleX(-1); }
+    .leaf-bl { bottom: 0; left: 0;    transform: scaleY(-1); }
+    .leaf-br { bottom: 0; right: 0;   transform: scale(-1,-1); }
+
+    @keyframes sway1  { 0%,100%{ transform: rotate(0deg); }           50%{ transform: rotate(1.5deg) translate(2px,1px); } }
+    @keyframes sway1m { 0%,100%{ transform: scaleX(-1) rotate(0deg);} 50%{ transform: scaleX(-1) rotate(-1.5deg) translate(-2px,1px); } }
+    @keyframes sway2  { 0%,100%{ transform: scaleY(-1) rotate(0deg);} 50%{ transform: scaleY(-1) rotate(-1.8deg) translate(2px,-2px); } }
+    @keyframes sway2m { 0%,100%{ transform: scale(-1,-1) rotate(0deg);} 50%{ transform: scale(-1,-1) rotate(1.8deg) translate(-2px,-2px); } }
+
+    .leaf-tl { animation: sway1  10s ease-in-out infinite; }
+    .leaf-tr { animation: sway1m 12s ease-in-out infinite; }
+    .leaf-bl { animation: sway2  11s ease-in-out infinite; }
+    .leaf-br { animation: sway2m 9s  ease-in-out infinite; }
+  </style>
 </head>
 <body>
+
+<!-- ── Canvases de fondo ──────────────────────────────────────── -->
+<canvas id="forest-canvas"></canvas>
+<canvas id="firefly-canvas"></canvas>
+
+<!-- ── Foliage overlay — hojas pequeñas en esquinas ─────────── -->
+<div id="foliage-overlay" aria-hidden="true">
+
+  <!-- TOP LEFT — dos hojas que salen del rincón -->
+  <svg class="leaf-group leaf-tl" width="180" height="160" viewBox="0 0 180 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Hoja principal — sale hacia abajo-derecha -->
+    <path d="M0,0 C18,-4 90,18 130,72 C148,96 144,130 112,142 C82,153 28,132 10,100 C-10,62 -8,8 0,0Z"
+          fill="#1e4a10" opacity="0.55"/>
+    <path d="M0,0 Q65,72 112,142" stroke="#2d6a18" stroke-width="1" opacity="0.35" fill="none"/>
+    <!-- Nervaduras secundarias -->
+    <path d="M0,0 Q30,30 55,28" stroke="#2a6016" stroke-width="0.6" opacity="0.22" fill="none"/>
+    <path d="M30,45 Q55,40 72,52" stroke="#2a6016" stroke-width="0.6" opacity="0.18" fill="none"/>
+    <!-- Hoja pequeña detrás -->
+    <path d="M0,10 C10,-2 55,8 80,45 C92,62 88,92 65,100 C40,108 2,88 0,62 Z"
+          fill="#183d0c" opacity="0.45"/>
+    <path d="M0,10 Q40,55 65,100" stroke="#254f12" stroke-width="0.7" opacity="0.28" fill="none"/>
+    <!-- Tallo fino -->
+    <path d="M0,0 Q8,12 5,30" stroke="#1e440e" stroke-width="1.5" fill="none" opacity="0.4"/>
+  </svg>
+
+  <!-- TOP RIGHT — espejo horizontal -->
+  <svg class="leaf-group leaf-tr" width="165" height="148" viewBox="0 0 165 148" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,0 C16,-4 82,16 120,66 C136,88 132,120 102,132 C74,142 24,122 8,92 C-10,58 -6,6 0,0Z"
+          fill="#1c4610" opacity="0.52"/>
+    <path d="M0,0 Q60,66 102,132" stroke="#2a6216" stroke-width="1" opacity="0.32" fill="none"/>
+    <path d="M0,8 C8,-2 50,8 74,42 C84,58 80,86 60,94 C36,102 2,82 0,58 Z"
+          fill="#163a0c" opacity="0.42"/>
+    <path d="M0,0 Q7,10 4,28" stroke="#1c400e" stroke-width="1.4" fill="none" opacity="0.38"/>
+  </svg>
+
+  <!-- BOTTOM LEFT — hojas que suben desde el suelo -->
+  <svg class="leaf-group leaf-bl" width="170" height="155" viewBox="0 0 170 155" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,155 C-6,115 16,42 68,14 C96,0 136,8 152,44 C168,80 152,126 118,142 C78,160 10,188 0,155Z"
+          fill="#1d480f" opacity="0.52"/>
+    <path d="M0,155 Q76,82 118,142" stroke="#2b6417" stroke-width="1" opacity="0.32" fill="none"/>
+    <path d="M2,140 C-2,104 18,56 60,34 C84,22 118,30 128,62 C138,94 118,132 88,144 C56,158 6,168 2,140Z"
+          fill="#163d0c" opacity="0.42"/>
+    <path d="M0,155 Q6,142 4,124" stroke="#1b420e" stroke-width="1.5" fill="none" opacity="0.38"/>
+  </svg>
+
+  <!-- BOTTOM RIGHT -->
+  <svg class="leaf-group leaf-br" width="162" height="148" viewBox="0 0 162 148" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,148 C-5,110 14,40 64,14 C90,0 128,8 144,42 C158,76 144,120 112,136 C74,154 8,180 0,148Z"
+          fill="#1c460f" opacity="0.50"/>
+    <path d="M0,148 Q72,78 112,136" stroke="#296015" stroke-width="1" opacity="0.30" fill="none"/>
+    <path d="M2,134 C-2,100 16,52 56,32 C78,20 110,28 120,58 C130,88 112,126 84,138 C54,152 5,158 2,134Z"
+          fill="#153b0b" opacity="0.40"/>
+    <path d="M0,148 Q5,136 3,118" stroke="#1a400d" stroke-width="1.4" fill="none" opacity="0.36"/>
+  </svg>
+
+</div>
+
+<!-- ── Cursor personalizado ─────────────────────────────────── -->
+<div class="cursor-dot" id="cursor-dot"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- ── Sonido ambiental ──────────────────────────────────────── -->
+<button class="ambient-toggle" id="ambient-toggle" title="Sonido ambiental" aria-label="Activar/desactivar sonido ambiental">
+  <div class="ripple"></div>
+  <span id="ambient-icon">🔇</span>
+</button>
+
+<!-- ── Overlay de transición ─────────────────────────────────── -->
+<div id="page-transition" style="
+  position:fixed;inset:0;z-index:9999;
+  background:radial-gradient(ellipse at center, rgba(20,40,10,0.0) 0%, rgba(8,13,6,0) 100%);
+  pointer-events:none;opacity:0;transition:opacity 0.6s ease;
+"></div>
 
 <header class="site-header">
   <div class="site-logo">
@@ -27,15 +130,20 @@
 </header>
 
 <section class="hero">
-  <div class="hero-bg-letter" aria-hidden="true">Aa Bb</div>
-  <div class="hero-content fade-up">
-    <p class="hero-label">A–Z · 26 especies · 26 tipografías</p>
-    <h1>Abecedario<br><em>de Anuros</em></h1>
+  <div class="hero-main fade-up">
+    <p class="hero-eyebrow">Catálogo tipográfico · 2025</p>
+    <h1 class="hero-h1">Abecedario<br><em>de Anuros</em></h1>
     <p class="hero-desc">
-      Un catálogo donde cada letra del alfabeto latino reúne una tipografía histórica 
+      Cada letra del alfabeto latino reúne una tipografía histórica
       y una especie de rana o sapo. Letra, forma y vida silvestre.
     </p>
-    <a href="#galeria" class="hero-cta">Explorar el catálogo</a>
+    <a href="#galeria" class="hero-cta">Explorar el catálogo →</a>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="stat-num">26</div><div class="stat-label">Especies</div></div>
+    <div class="hero-stat"><div class="stat-num">26</div><div class="stat-label">Tipografías</div></div>
+    <div class="hero-stat"><div class="stat-num">A–Z</div><div class="stat-label">Alfabeto completo</div></div>
+    <div class="hero-stat"><div class="stat-num">7</div><div class="stat-label">Familias tipográficas</div></div>
   </div>
 </section>
 
@@ -54,6 +162,11 @@
   <button class="filter-btn" data-filter="Lineales humanistas">Lineales</button>
 </div>
 
+<div class="gallery-label">
+  <span id="gallery-count">Cargando…</span>
+  <span>A → Z</span>
+</div>
+
 <main>
   <div id="alphabet-grid" class="alphabet-grid" aria-live="polite">
     <div class="loading-grid">
@@ -64,32 +177,32 @@
 </main>
 
 <section id="proyecto" class="about-section">
-  <div>
-    <h2>El proyecto</h2>
+  <div class="about-col">
+    <p class="about-eyebrow">El proyecto</p>
+    <h2>Tipografía y biodiversidad</h2>
     <p>
-      <em>Abecedario de Anuros</em> nace de la intersección entre la tipografía histórica 
-      y la biodiversidad anfibia. Cada letra del alfabeto latino tiene asignada una 
-      tipografía representativa de su época y corriente estética, y una especie de anuro 
-      cuyo nombre comienza con esa letra.
+      <em>Abecedario de Anuros</em> nace de la intersección entre la tipografía histórica
+      y la biodiversidad anfibia. Cada letra tiene asignada una tipografía representativa
+      de su época y corriente estética, y una especie de anuro cuyo nombre comienza con esa letra.
     </p>
-    <p style="margin-top:1rem">
-      Las ilustraciones fueron realizadas digitalmente —
-      la rana y la letra conviven en la misma composición, sin fondo, 
-      permitiendo que cada especie interactúe de forma natural con su tipografía. 
-      El catálogo impreso incluye códigos QR que enlazan a esta experiencia digital.
+    <p>
+      Las ilustraciones fueron realizadas digitalmente — la rana y la letra conviven en la
+      misma composición, sin fondo, permitiendo que cada especie interactúe de forma natural
+      con su tipografía. El catálogo impreso incluye códigos QR que enlazan a esta experiencia digital.
     </p>
   </div>
-  <div>
-    <h2>Las tipografías</h2>
+  <div class="about-col">
+    <p class="about-eyebrow">Las tipografías</p>
+    <h2>De la veneziana al modernismo</h2>
     <p>
-      La selección recorre las grandes familias tipográficas: desde las romanas venecianas 
-      del siglo XV (Apolline, Centaur) hasta las sans serif geométricas del siglo XX 
-      (Futura, Avenir, DIN), pasando por las garaldas renacentistas, las didonas 
+      La selección recorre las grandes familias tipográficas: desde las romanas venecianas
+      del siglo XV (Apolline, Centaur) hasta las sans serif geométricas del siglo XX
+      (Futura, Avenir, DIN), pasando por las garaldas renacentistas, las didonas
       neoclásicas y las egipcias industriales.
     </p>
-    <p style="margin-top:1rem">
-      En cada página de especie, la tipografía asignada se usa para mostrar la letra, 
-      el nombre de la especie y elementos decorativos, creando una coherencia visual 
+    <p>
+      En cada página de especie, la tipografía asignada se usa para mostrar la letra,
+      el nombre de la especie y todos los textos, creando coherencia visual
       entre forma tipográfica y forma biológica.
     </p>
   </div>
@@ -100,13 +213,495 @@
   <button class="admin-trigger" id="admin-trigger" title="Administración" aria-label="Panel de administración">·</button>
 </footer>
 
+<!-- ══════════════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════════════ -->
+<script>
+/* ── Cursor personalizado ──────────────────────────────────────── */
+(function() {
+  const dot  = document.getElementById('cursor-dot');
+  const ring = document.getElementById('cursor-ring');
+  let rx = 0, ry = 0, mx = 0, my = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    dot.style.left  = mx + 'px';
+    dot.style.top   = my + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.13;
+    ry += (my - ry) * 0.13;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.addEventListener('mouseover', e => {
+    if (e.target.closest('a,button,.rana-card')) document.body.classList.add('cursor-hover');
+  });
+  document.addEventListener('mouseout', e => {
+    if (e.target.closest('a,button,.rana-card')) document.body.classList.remove('cursor-hover');
+  });
+})();
+
+/* ── Forest background ──────────────────────────────────────────── */
+(function() {
+  const canvas = document.getElementById('forest-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, leaves = [];
+
+  function seededRand(seed) {
+    let s = seed;
+    return function() {
+      s = (s * 9301 + 49297) % 233280;
+      return s / 233280;
+    };
+  }
+
+  function drawLeaf(ctx, x, y, len, wid, angle, vein, fillColor, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.shadowColor   = 'rgba(0,0,0,0.45)';
+    ctx.shadowBlur    = len * 0.18;
+    ctx.shadowOffsetX = len * 0.04;
+    ctx.shadowOffsetY = len * 0.06;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo( wid * 0.9,  -len * 0.2,   wid * 1.0,  -len * 0.7,  0, -len);
+    ctx.bezierCurveTo(-wid * 0.85, -len * 0.7,  -wid * 0.8,  -len * 0.2,  0,  0);
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    if (vein) {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(wid * 0.06, -len * 0.5, 0, -len);
+      ctx.strokeStyle = 'rgba(138,181,90,0.18)';
+      ctx.lineWidth   = Math.max(0.4, len * 0.008);
+      ctx.globalAlpha = alpha * 0.6;
+      ctx.stroke();
+      const pairs = 3 + Math.floor(len / 120);
+      for (let p = 1; p <= pairs; p++) {
+        const ty  = -len * (p / (pairs + 1));
+        const ext = wid * (0.55 - p * 0.06);
+        ctx.beginPath();
+        ctx.moveTo(0, ty);
+        ctx.quadraticCurveTo( ext * 0.5, ty - len * 0.06,  ext, ty - len * 0.03);
+        ctx.moveTo(0, ty);
+        ctx.quadraticCurveTo(-ext * 0.5, ty - len * 0.06, -ext, ty - len * 0.03);
+        ctx.strokeStyle = 'rgba(138,181,90,0.12)';
+        ctx.lineWidth   = Math.max(0.3, len * 0.005);
+        ctx.globalAlpha = alpha * 0.4;
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  function buildLeaves(rand) {
+    leaves = [];
+    const total = Math.floor(W * H / 5500);
+    for (let i = 0; i < Math.floor(total * 0.28); i++) {
+      const side = rand() < 0.5 ? -1 : 1;
+      leaves.push({ x: rand() < 0.6 ? rand() * W * 0.3 * side + (side > 0 ? 0 : W) : rand() * W, y: rand() * H * 0.45, len: 160 + rand() * 220, wid: 0, angle: (rand() - 0.5) * Math.PI * 0.7 + (side > 0 ? 0.2 : -0.2), baseAngle: 0, phase: rand() * Math.PI * 2, speed: 0.0003 + rand() * 0.0004, swing: 0.018 + rand() * 0.022, layer: 0, vein: true, alpha: 0.82 + rand() * 0.18, hue: rand() * 18 });
+    }
+    for (let i = 0; i < Math.floor(total * 0.38); i++) {
+      leaves.push({ x: rand() * W, y: rand() * H * 0.78, len: 70 + rand() * 120, wid: 0, angle: (rand() - 0.5) * Math.PI * 0.85, baseAngle: 0, phase: rand() * Math.PI * 2, speed: 0.0005 + rand() * 0.0006, swing: 0.025 + rand() * 0.03, layer: 1, vein: rand() > 0.3, alpha: 0.7 + rand() * 0.28, hue: rand() * 22 });
+    }
+    for (let i = 0; i < Math.floor(total * 0.34); i++) {
+      leaves.push({ x: rand() * W, y: rand() * H * 0.95, len: 28 + rand() * 65, wid: 0, angle: (rand() - 0.5) * Math.PI, baseAngle: 0, phase: rand() * Math.PI * 2, speed: 0.0008 + rand() * 0.001, swing: 0.035 + rand() * 0.04, layer: 2, vein: rand() > 0.55, alpha: 0.55 + rand() * 0.38, hue: rand() * 26 });
+    }
+    leaves.forEach(l => { l.wid = l.len * (0.28 + Math.random() * 0.18); l.baseAngle = l.angle; });
+    leaves.sort((a, b) => a.layer - b.layer);
+  }
+
+  const palettes = [
+    ['#091508','#0b1a09','#0d1f0a','#0a1707'],
+    ['#0e2109','#112608','#132b0a','#0f230b'],
+    ['#142e0b','#17330d','#19380e','#162f0c'],
+  ];
+  function getColor(leaf) {
+    const p = palettes[leaf.layer];
+    return p[Math.floor(leaf.hue / 8) % p.length];
+  }
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    buildLeaves(seededRand(77));
+  }
+
+  function render(ts) {
+    ctx.clearRect(0, 0, W, H);
+    const bg = ctx.createLinearGradient(0, 0, 0, H);
+    bg.addColorStop(0,   '#060e04');
+    bg.addColorStop(0.5, '#080d06');
+    bg.addColorStop(1,   '#090f07');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+    const ray = ctx.createRadialGradient(W * 0.35, 0, 0, W * 0.35, H * 0.3, W * 0.7);
+    ray.addColorStop(0,   'rgba(138,181,90,0.04)');
+    ray.addColorStop(0.5, 'rgba(100,150,60,0.015)');
+    ray.addColorStop(1,   'rgba(0,0,0,0)');
+    ctx.fillStyle = ray;
+    ctx.fillRect(0, 0, W, H);
+    leaves.forEach(l => {
+      const sway = Math.sin(ts * l.speed + l.phase) * l.swing;
+      drawLeaf(ctx, l.x, l.y, l.len, l.wid, l.baseAngle + sway, l.vein, getColor(l), l.alpha);
+    });
+    const fog = ctx.createLinearGradient(0, H * 0.72, 0, H);
+    fog.addColorStop(0,   'rgba(8,13,6,0)');
+    fog.addColorStop(0.6, 'rgba(8,12,5,0.55)');
+    fog.addColorStop(1,   'rgba(7,11,5,0.82)');
+    ctx.fillStyle = fog;
+    ctx.globalAlpha = 1;
+    ctx.fillRect(0, H * 0.72, W, H);
+    requestAnimationFrame(render);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(render);
+})();
+
+/* ── Fireflies ──────────────────────────────────────────────────── */
+(function() {
+  const canvas = document.getElementById('firefly-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, flies = [];
+
+  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+
+  function createFly() {
+    return { x: Math.random()*W, y: Math.random()*H*0.85, vx: (Math.random()-0.5)*0.3, vy: (Math.random()-0.5)*0.2, radius: 1.2+Math.random()*1.4, phase: Math.random()*Math.PI*2, speed: 0.008+Math.random()*0.012, hue: Math.random()>0.7?80:65 };
+  }
+
+  function init() { resize(); flies = Array.from({length: Math.min(55, Math.floor(W*H/20000))}, createFly); }
+
+  function animate() {
+    ctx.clearRect(0, 0, W, H);
+    const now = performance.now() * 0.001;
+    flies.forEach(f => {
+      f.x += f.vx + Math.sin(now*f.speed*7+f.phase)*0.4;
+      f.y += f.vy + Math.cos(now*f.speed*5+f.phase*1.3)*0.25;
+      if (f.x < -20) f.x = W+20;
+      if (f.x > W+20) f.x = -20;
+      if (f.y < -20) f.y = H*0.85;
+      if (f.y > H*0.85) f.y = -20;
+      const pulse = (Math.sin(now*f.speed*40+f.phase)+1)/2;
+      const alpha = 0.15+pulse*0.7;
+      const glow  = f.radius*(1.5+pulse*2.5);
+      const grad = ctx.createRadialGradient(f.x,f.y,0,f.x,f.y,glow*3);
+      grad.addColorStop(0, `hsla(${f.hue},80%,70%,${alpha*0.9})`);
+      grad.addColorStop(0.4,`hsla(${f.hue},70%,55%,${alpha*0.3})`);
+      grad.addColorStop(1, `hsla(${f.hue},60%,40%,0)`);
+      ctx.beginPath(); ctx.arc(f.x,f.y,glow*3,0,Math.PI*2);
+      ctx.fillStyle = grad; ctx.fill();
+      ctx.beginPath(); ctx.arc(f.x,f.y,f.radius,0,Math.PI*2);
+      ctx.fillStyle = `hsla(${f.hue+15},90%,85%,${alpha})`; ctx.fill();
+    });
+    requestAnimationFrame(animate);
+  }
+
+  window.addEventListener('resize', resize);
+  init(); animate();
+})();
+
+/* ═══════════════════════════════════════════════════════════════════
+   AUDIO — Río de selva, lluvia suave y ranas
+   ═══════════════════════════════════════════════════════════════════ */
+(function() {
+  const btn  = document.getElementById('ambient-toggle');
+  const icon = document.getElementById('ambient-icon');
+  let AC, master, playing = false, started = false;
+
+  function buildAudio() {
+    if (started) return;
+    started = true;
+
+    AC     = new (window.AudioContext || window.webkitAudioContext)();
+    master = AC.createGain();
+    master.gain.value = 0;
+    master.connect(AC.destination);
+
+    // ── 1. RÍO — ruido marrón con modulación de caudal ─────────
+    // El ruido marrón (integrado de ruido blanco) suena naturalmente
+    // a agua corriente: más grave y suave que el ruido blanco.
+    function makeRiver() {
+      const bufSecs = 8;
+      const buf  = AC.createBuffer(2, AC.sampleRate * bufSecs, AC.sampleRate);
+
+      for (let ch = 0; ch < 2; ch++) {
+        const data = buf.getChannelData(ch);
+        let prev = 0;
+        // Ruido marrón: integración del ruido blanco → sonido grave/aterciopelado
+        for (let i = 0; i < data.length; i++) {
+          const w = Math.random() * 2 - 1;
+          prev = (prev + w * 0.05) * 0.995; // decay controla el "color"
+          data[i] = prev * 3.5; // amplitud
+        }
+        // Limitar
+        for (let i = 0; i < data.length; i++) {
+          data[i] = Math.max(-1, Math.min(1, data[i]));
+        }
+      }
+
+      const src = AC.createBufferSource();
+      src.buffer = buf; src.loop = true;
+
+      // Filtro paso-banda: zona 80–600 Hz — sonido de agua real
+      const bp1 = AC.createBiquadFilter();
+      bp1.type = 'bandpass'; bp1.frequency.value = 280; bp1.Q.value = 0.4;
+
+      const bp2 = AC.createBiquadFilter();
+      bp2.type = 'bandpass'; bp2.frequency.value = 520; bp2.Q.value = 0.6;
+
+      // LFO muy lento para simular variaciones del caudal
+      const lfoSrc = AC.createOscillator();
+      lfoSrc.type = 'sine'; lfoSrc.frequency.value = 0.07; // 1 ciclo cada 14 s
+      const lfoGain = AC.createGain(); lfoGain.gain.value = 0.08;
+      const riverGain = AC.createGain(); riverGain.gain.value = 0.38;
+      lfoSrc.connect(lfoGain); lfoGain.connect(riverGain.gain);
+      lfoSrc.start();
+
+      // Mezclar dos bandas para riqueza
+      const mix = AC.createGain(); mix.gain.value = 1;
+      src.connect(bp1); bp1.connect(mix);
+      src.connect(bp2); bp2.connect(mix);
+      mix.connect(riverGain); riverGain.connect(master);
+      src.start();
+
+      // Burbujeos ocasionales: pequeñas campanas de agua muy filtradas
+      function scheduleBubble() {
+        if (!playing) return;
+        const delay = 0.8 + Math.random() * 2.8;
+        const t     = AC.currentTime + delay;
+        const osc   = AC.createOscillator();
+        const env   = AC.createGain();
+        const lp    = AC.createBiquadFilter();
+        osc.type = 'sine';
+        osc.frequency.value = 400 + Math.random() * 800;
+        lp.type = 'lowpass'; lp.frequency.value = 900;
+        env.gain.setValueAtTime(0, t);
+        env.gain.linearRampToValueAtTime(0.012, t + 0.012);
+        env.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+        osc.connect(lp); lp.connect(env); env.connect(master);
+        osc.start(t); osc.stop(t + 0.2);
+        setTimeout(scheduleBubble, delay * 1000);
+      }
+      window._scheduleBubble = scheduleBubble;
+    }
+
+    // ── 2. LLUVIA SUAVE sobre hojas ─────────────────────────────
+    // Ruido rosa (sonido natural de lluvia) filtrado en frecuencias
+    // medias-altas — el impacto de gotas en hojas
+    function makeRain() {
+      const buf  = AC.createBuffer(1, AC.sampleRate * 5, AC.sampleRate);
+      const data = buf.getChannelData(0);
+      let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0;
+      for (let i = 0; i < data.length; i++) {
+        const w = Math.random() * 2 - 1;
+        // Ruido rosa (Voss-McCartney)
+        b0 = 0.99886*b0 + w*0.0555179;
+        b1 = 0.99332*b1 + w*0.0750759;
+        b2 = 0.96900*b2 + w*0.1538520;
+        b3 = 0.86650*b3 + w*0.3104856;
+        b4 = 0.55000*b4 + w*0.5329522;
+        b5 = -0.7616*b5 - w*0.0168980;
+        data[i] = (b0+b1+b2+b3+b4+b5+w*0.5362) * 0.11;
+      }
+      const src = AC.createBufferSource();
+      src.buffer = buf; src.loop = true;
+
+      // Frecuencias altas → gotas en hojas (más cristalino que la lluvia en suelo)
+      const hp = AC.createBiquadFilter();
+      hp.type = 'highpass'; hp.frequency.value = 1400; hp.Q.value = 0.5;
+      const lp = AC.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 8000;
+
+      const g = AC.createGain(); g.gain.value = 0.12; // suave, no dominante
+      src.connect(hp); hp.connect(lp); lp.connect(g); g.connect(master);
+      src.start();
+    }
+
+    // ── 3. CANTO DE GRILLOS Y CHICHARRAS — muy tenue de fondo ───
+    function makeCrickets() {
+      // Solo grillos, muy suaves (volumen 40% del original)
+      const carrier = AC.createOscillator();
+      carrier.type  = 'sine';
+      carrier.frequency.value = 4600 + Math.random() * 300;
+      const lfo = AC.createOscillator();
+      lfo.type  = 'sine'; lfo.frequency.value = 20;
+      const lfoGain = AC.createGain(); lfoGain.gain.value = 0.9;
+      const outGain = AC.createGain(); outGain.gain.value = 0;
+      lfo.connect(lfoGain); lfoGain.connect(outGain.gain);
+      carrier.connect(outGain);
+      const g = AC.createGain(); g.gain.value = 0.03; // muy bajo
+      outGain.connect(g); g.connect(master);
+      carrier.start(); lfo.start();
+    }
+
+    // ── 4. RANAS — llamadas más musicales y melódicas ───────────
+    // Tres voces posibles: grave, media, aguda — más naturales
+    const frogVoices = [
+      { baseFreq: 180, sweep: 1.3,  dur: 0.12, repeats: [2,3], intervalMin: 0.06 },  // grave tipo sapo
+      { baseFreq: 380, sweep: 1.45, dur: 0.08, repeats: [3,6], intervalMin: 0.055 }, // media — árbol
+      { baseFreq: 620, sweep: 1.28, dur: 0.055,repeats: [4,8], intervalMin: 0.04 },  // aguda — rana pequeña
+    ];
+
+    function scheduleFrog() {
+      if (!playing) return;
+      const delay = 4 + Math.random() * 10;
+      const voice = frogVoices[Math.floor(Math.random() * frogVoices.length)];
+      const freq    = voice.baseFreq * (0.88 + Math.random() * 0.24);
+      const repeats = voice.repeats[0] + Math.floor(Math.random() * (voice.repeats[1] - voice.repeats[0]));
+      const interval= voice.intervalMin + Math.random() * 0.06;
+
+      for (let r = 0; r < repeats; r++) {
+        const t   = AC.currentTime + delay + r * interval;
+        const osc = AC.createOscillator();
+        const env = AC.createGain();
+        const lp  = AC.createBiquadFilter(); // suaviza las ranas
+        lp.type = 'lowpass'; lp.frequency.value = freq * 3.5;
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        osc.frequency.exponentialRampToValueAtTime(freq * voice.sweep, t + voice.dur * 0.45);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.9, t + voice.dur);
+
+        env.gain.setValueAtTime(0, t);
+        env.gain.linearRampToValueAtTime(0.042, t + voice.dur * 0.12);
+        env.gain.linearRampToValueAtTime(0.03, t + voice.dur * 0.7);
+        env.gain.linearRampToValueAtTime(0, t + voice.dur);
+
+        // Reverb de selva: delay + feedback suave
+        const dly  = AC.createDelay(0.4);
+        const dlyG = AC.createGain();
+        dly.delayTime.value = 0.12 + Math.random() * 0.18;
+        dlyG.gain.value     = 0.22;
+        // Segundo eco
+        const dly2  = AC.createDelay(0.4);
+        const dly2G = AC.createGain();
+        dly2.delayTime.value = dly.delayTime.value * 1.7;
+        dly2G.gain.value = 0.1;
+
+        osc.connect(lp);
+        lp.connect(env);
+        env.connect(master);
+        env.connect(dly); dly.connect(dlyG); dlyG.connect(master);
+        env.connect(dly2); dly2.connect(dly2G); dly2G.connect(master);
+        osc.start(t); osc.stop(t + voice.dur + 0.05);
+      }
+      setTimeout(scheduleFrog, delay * 1000);
+    }
+    window._scheduleFrog   = scheduleFrog;
+
+    makeRiver();
+    makeRain();
+    makeCrickets();
+  }
+
+  function autoStart() {
+    buildAudio();
+    if (AC.state === 'suspended') AC.resume();
+    playing = true;
+    master.gain.cancelScheduledValues(AC.currentTime);
+    master.gain.setValueAtTime(0, AC.currentTime);
+    master.gain.linearRampToValueAtTime(0.42, AC.currentTime + 6);
+    btn.classList.add('playing');
+    icon.textContent = '🔊';
+    if (window._scheduleFrog)  window._scheduleFrog();
+    if (window._scheduleBubble) window._scheduleBubble();
+    window.removeEventListener('mousemove',  autoStart);
+    window.removeEventListener('scroll',     autoStart);
+    window.removeEventListener('touchstart', autoStart);
+  }
+
+  window.addEventListener('mousemove',  autoStart, { once: true });
+  window.addEventListener('scroll',     autoStart, { once: true });
+  window.addEventListener('touchstart', autoStart, { once: true });
+
+  btn.addEventListener('click', () => {
+    if (!started) { autoStart(); return; }
+    if (AC.state === 'suspended') AC.resume();
+    if (!playing) {
+      playing = true;
+      master.gain.cancelScheduledValues(AC.currentTime);
+      master.gain.setValueAtTime(master.gain.value, AC.currentTime);
+      master.gain.linearRampToValueAtTime(0.42, AC.currentTime + 2.5);
+      btn.classList.add('playing');
+      icon.textContent = '🔊';
+      if (window._scheduleFrog)   window._scheduleFrog();
+      if (window._scheduleBubble) window._scheduleBubble();
+    } else {
+      playing = false;
+      master.gain.cancelScheduledValues(AC.currentTime);
+      master.gain.setValueAtTime(master.gain.value, AC.currentTime);
+      master.gain.linearRampToValueAtTime(0, AC.currentTime + 3);
+      btn.classList.remove('playing');
+      icon.textContent = '🔇';
+    }
+  });
+})();
+
+/* ── Transición de página ───────────────────────────────────────── */
+function navigateToRana(letra) {
+  const overlay = document.getElementById('page-transition');
+  overlay.style.background = 'radial-gradient(ellipse at center, rgba(8,20,4,0) 0%, rgba(8,13,6,0.96) 100%)';
+  overlay.style.opacity = '1';
+  overlay.style.transition = 'opacity 0.55s ease';
+  setTimeout(() => { window.location.href = `rana.html?letra=${letra}`; }, 480);
+}
+</script>
+
 <script type="module">
   import { initializeApp }               from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { firebaseConfig }              from "./js/firebase-config.js";
-  import { RANAS_DATA, IUCN_CONFIG }     from "./js/data.js";
+  import { RANAS_DATA, FONT_MAP, IUCN_CONFIG } from "./js/data.js";
 
   let ranas = [];
+  const loadedFonts = new Set();
+
+  function preloadGoogleFonts(list) {
+    const params = [];
+    list.forEach(r => {
+      const fi = FONT_MAP[r.tipografia];
+      if (fi?.googleFont && !loadedFonts.has(r.tipografia)) {
+        params.push(`family=${fi.googleFont}`);
+        loadedFonts.add(r.tipografia);
+      }
+    });
+    if (!params.length) return;
+    const link = document.createElement("link");
+    link.rel  = "stylesheet";
+    link.href = `https://fonts.googleapis.com/css2?${params.join("&")}&display=swap`;
+    document.head.appendChild(link);
+  }
+
+  function injectLocalFont(tipografia) {
+    if (loadedFonts.has(tipografia)) return;
+    loadedFonts.add(tipografia);
+    const fi = FONT_MAP[tipografia];
+    if (!fi?.localFile) return;
+    const s = document.createElement("style");
+    s.textContent = `
+      @font-face { font-family:'${tipografia}'; src:url('fonts/${fi.localFile}/${fi.localFile}.woff2') format('woff2'),url('fonts/${fi.localFile}/${fi.localFile}.woff') format('woff'); font-weight:normal; font-style:normal; font-display:swap; }
+      @font-face { font-family:'${tipografia}'; src:url('fonts/${fi.localFile}/${fi.localFile}-italic.woff2') format('woff2'),url('fonts/${fi.localFile}/${fi.localFile}-italic.woff') format('woff'); font-weight:normal; font-style:italic; font-display:swap; }`;
+    document.head.appendChild(s);
+  }
+
+  const fontObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      injectLocalFont(entry.target.dataset.tipografia);
+      fontObserver.unobserve(entry.target);
+    });
+  }, { rootMargin: "200px" });
 
   async function loadRanas() {
     try {
@@ -117,53 +712,56 @@
         const fsData = {};
         snap.forEach(doc => { fsData[doc.id] = doc.data(); });
         ranas = RANAS_DATA.map(r => ({ ...r, ...(fsData[r.letra] || {}) }));
-      } else {
-        ranas = RANAS_DATA;
-      }
-    } catch (e) {
-      console.warn("Firestore no disponible, usando datos locales:", e.message);
-      ranas = RANAS_DATA;
-    }
+      } else { ranas = RANAS_DATA; }
+    } catch (e) { console.warn("Firestore no disponible:", e.message); ranas = RANAS_DATA; }
+    preloadGoogleFonts(ranas);
     renderGrid(ranas);
     initFilters();
   }
 
+  function getFontFamily(tipografia) { return FONT_MAP[tipografia]?.cssFamily || `'${tipografia}', serif`; }
+
   function renderGrid(data) {
-    const grid = document.getElementById("alphabet-grid");
-    if (!data.length) {
-      grid.innerHTML = '<p class="loading-grid">No hay ranas para mostrar.</p>';
-      return;
-    }
+    const grid    = document.getElementById("alphabet-grid");
+    const countEl = document.getElementById("gallery-count");
+    if (countEl) countEl.textContent = `${data.length} entrada${data.length !== 1 ? "s" : ""}`;
+    if (!data.length) { grid.innerHTML = '<p class="loading-grid">No hay ranas para mostrar.</p>'; return; }
+
     grid.innerHTML = data.map((r, i) => {
-      const iucn   = IUCN_CONFIG[r.estadoIUCN] || IUCN_CONFIG["DD"];
-      const hasImg = r.imagenUrl && r.imagenUrl.trim() !== "";
+      const iucn       = IUCN_CONFIG[r.estadoIUCN] || IUCN_CONFIG["DD"];
+      const hasImg     = r.imagenUrl && r.imagenUrl.trim() !== "";
+      const fontFamily = getFontFamily(r.tipografia);
+      const accent     = r.colorAccent || "var(--accent)";
       return `
         <article class="rana-card fade-up"
-          style="animation-delay:${i * 0.028}s; --card-accent:${r.colorAccent || '#7CBA5A'}"
+          style="animation-delay:${Math.min(i*0.024,0.48)}s; --rana-accent:${accent}"
           data-clasificacion="${r.clasificacion}"
           data-subclasificacion="${r.subclasificacion}"
-          onclick="window.location='rana.html?letra=${r.letra}'"
+          data-tipografia="${r.tipografia}"
+          onclick="navigateToRana('${r.letra}')"
           role="link" tabindex="0"
-          onkeydown="if(event.key==='Enter')window.location='rana.html?letra=${r.letra}'"
+          onkeydown="if(event.key==='Enter')navigateToRana('${r.letra}')"
           aria-label="${r.nombreComun} — letra ${r.letra.toUpperCase()}">
           <div class="card-letter-bg" aria-hidden="true">${r.letra.toUpperCase()}</div>
           <div class="card-frog">
-            ${hasImg
-              ? `<img src="${r.imagenUrl}" alt="Ilustración de ${r.nombreComun}" loading="lazy">`
-              : `<div class="placeholder-frog">🐸</div>`
-            }
+            ${hasImg ? `<img class="card-frog-img" src="${r.imagenUrl}" alt="Ilustración de ${r.nombreComun}" loading="lazy">` : `<div class="placeholder-frog">🐸</div>`}
           </div>
-          <div class="card-info">
-            <p class="card-letra">${r.letra.toUpperCase()}${r.letra.toLowerCase()} · ${r.tipografia}</p>
-            <h2 class="card-nombre-comun">${r.nombreComun}</h2>
+          <div class="card-info" style="--rana-font:${fontFamily}; --rana-accent:${accent}">
+            <p class="card-meta">${r.letra.toUpperCase()}${r.letra} · ${r.tipografia}</p>
+            <p class="card-nombre-comun">${r.nombreComun}</p>
             <p class="card-nombre-cientifico">${r.nombreCientifico}</p>
-            <span class="card-iucn" style="background:${iucn.color}">${r.estadoIUCN}</span>
-            <p class="card-tipografia">${r.clasificacion} · ${r.subclasificacion}</p>
           </div>
-          <div class="card-overlay" aria-hidden="true"></div>
-        </article>
-      `;
+          <div class="card-footer">
+            <span class="card-iucn" style="background:${iucn.color}">${r.estadoIUCN}</span>
+            <span class="card-tipografia">${r.subclasificacion}</span>
+          </div>
+        </article>`;
     }).join("");
+
+    grid.querySelectorAll(".rana-card[data-tipografia]").forEach(card => {
+      const fi = FONT_MAP[card.dataset.tipografia];
+      if (fi?.localFile) fontObserver.observe(card);
+    });
   }
 
   function initFilters() {
@@ -172,15 +770,11 @@
         document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         const f = btn.dataset.filter;
-        const filtered = f === "all" ? ranas : ranas.filter(r =>
-          r.clasificacion === f || r.subclasificacion === f
-        );
-        renderGrid(filtered);
+        renderGrid(f === "all" ? ranas : ranas.filter(r => r.clasificacion === f || r.subclasificacion === f));
       });
     });
   }
 
-  // Admin: triple clic en el punto del footer
   let clickCount = 0;
   document.getElementById("admin-trigger").addEventListener("click", () => {
     clickCount++;

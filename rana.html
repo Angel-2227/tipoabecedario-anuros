@@ -7,12 +7,107 @@
   <meta name="description" id="page-desc" content="Información de especie — Abecedario de Anuros">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/rana.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    /* ── Foliage overlay — esquinas estratégicas ────────────────── */
+    #foliage-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+      overflow: hidden;
+    }
+    #foliage-overlay svg.leaf-group {
+      position: absolute;
+      will-change: transform;
+    }
+    .leaf-tl { top: 0;    left: 0; }
+    .leaf-tr { top: 0;    right: 0;   transform: scaleX(-1); }
+    .leaf-bl { bottom: 0; left: 0;   transform: scaleY(-1); }
+    .leaf-br { bottom: 0; right: 0;  transform: scale(-1,-1); }
+
+    @keyframes sway1  { 0%,100%{ transform: rotate(0deg); }            50%{ transform: rotate(1.5deg) translate(2px,1px); } }
+    @keyframes sway1m { 0%,100%{ transform: scaleX(-1) rotate(0deg); } 50%{ transform: scaleX(-1) rotate(-1.5deg) translate(-2px,1px); } }
+    @keyframes sway2  { 0%,100%{ transform: scaleY(-1) rotate(0deg); } 50%{ transform: scaleY(-1) rotate(-1.8deg) translate(2px,-2px); } }
+    @keyframes sway2m { 0%,100%{ transform: scale(-1,-1) rotate(0deg);} 50%{ transform: scale(-1,-1) rotate(1.8deg) translate(-2px,-2px); } }
+
+    .leaf-tl { animation: sway1  10s ease-in-out infinite; }
+    .leaf-tr { animation: sway1m 12s ease-in-out infinite; }
+    .leaf-bl { animation: sway2  11s ease-in-out infinite; }
+    .leaf-br { animation: sway2m 9s  ease-in-out infinite; }
+
+    /* ── Hojas alrededor de la ilustración ─────────────────────── */
+    .illustration-frame .illus-leaf {
+      position: absolute;
+      pointer-events: none;
+      z-index: 3;
+    }
+    .illus-leaf-tl { top: -12px; left: -14px; }
+    .illus-leaf-tr { top: -10px; right: -12px; transform: scaleX(-1); }
+    .illus-leaf-bl { bottom: -10px; left: -12px; transform: scaleY(-1); }
+    .illus-leaf-br { bottom: -12px; right: -14px; transform: scale(-1,-1); }
+
+    @keyframes illus-sway-tl { 0%,100%{transform:rotate(0deg)}         50%{transform:rotate(2deg)} }
+    @keyframes illus-sway-tr { 0%,100%{transform:scaleX(-1) rotate(0deg)} 50%{transform:scaleX(-1) rotate(-2deg)} }
+    @keyframes illus-sway-bl { 0%,100%{transform:scaleY(-1) rotate(0deg)} 50%{transform:scaleY(-1) rotate(-2deg)} }
+    @keyframes illus-sway-br { 0%,100%{transform:scale(-1,-1) rotate(0deg)} 50%{transform:scale(-1,-1) rotate(2deg)} }
+
+    .illus-leaf-tl { animation: illus-sway-tl  7s ease-in-out infinite; }
+    .illus-leaf-tr { animation: illus-sway-tr  9s ease-in-out infinite; }
+    .illus-leaf-bl { animation: illus-sway-bl  8s ease-in-out infinite; }
+    .illus-leaf-br { animation: illus-sway-br 10s ease-in-out infinite; }
+  </style>
 </head>
 <body>
+
+<!-- ── Foliage overlay — hojas pequeñas en esquinas ─────────────── -->
+<div id="foliage-overlay" aria-hidden="true">
+
+  <!-- TOP LEFT -->
+  <svg class="leaf-group leaf-tl" width="180" height="160" viewBox="0 0 180 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,0 C18,-4 90,18 130,72 C148,96 144,130 112,142 C82,153 28,132 10,100 C-10,62 -8,8 0,0Z"
+          fill="#1e4a10" opacity="0.55"/>
+    <path d="M0,0 Q65,72 112,142" stroke="#2d6a18" stroke-width="1" opacity="0.35" fill="none"/>
+    <path d="M0,0 Q30,30 55,28" stroke="#2a6016" stroke-width="0.6" opacity="0.22" fill="none"/>
+    <path d="M0,10 C10,-2 55,8 80,45 C92,62 88,92 65,100 C40,108 2,88 0,62 Z"
+          fill="#183d0c" opacity="0.42"/>
+    <path d="M0,0 Q8,12 5,30" stroke="#1e440e" stroke-width="1.5" fill="none" opacity="0.38"/>
+  </svg>
+
+  <!-- TOP RIGHT -->
+  <svg class="leaf-group leaf-tr" width="165" height="148" viewBox="0 0 165 148" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,0 C16,-4 82,16 120,66 C136,88 132,120 102,132 C74,142 24,122 8,92 C-10,58 -6,6 0,0Z"
+          fill="#1c4610" opacity="0.52"/>
+    <path d="M0,0 Q60,66 102,132" stroke="#2a6216" stroke-width="1" opacity="0.32" fill="none"/>
+    <path d="M0,8 C8,-2 50,8 74,42 C84,58 80,86 60,94 C36,102 2,82 0,58 Z"
+          fill="#163a0c" opacity="0.40"/>
+    <path d="M0,0 Q7,10 4,28" stroke="#1c400e" stroke-width="1.4" fill="none" opacity="0.36"/>
+  </svg>
+
+  <!-- BOTTOM LEFT -->
+  <svg class="leaf-group leaf-bl" width="170" height="155" viewBox="0 0 170 155" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,155 C-6,115 16,42 68,14 C96,0 136,8 152,44 C168,80 152,126 118,142 C78,160 10,188 0,155Z"
+          fill="#1d480f" opacity="0.52"/>
+    <path d="M0,155 Q76,82 118,142" stroke="#2b6417" stroke-width="1" opacity="0.30" fill="none"/>
+    <path d="M2,140 C-2,104 18,56 60,34 C84,22 118,30 128,62 C138,94 118,132 88,144 C56,158 6,168 2,140Z"
+          fill="#163d0c" opacity="0.40"/>
+    <path d="M0,155 Q6,142 4,124" stroke="#1b420e" stroke-width="1.5" fill="none" opacity="0.36"/>
+  </svg>
+
+  <!-- BOTTOM RIGHT -->
+  <svg class="leaf-group leaf-br" width="162" height="148" viewBox="0 0 162 148" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0,148 C-5,110 14,40 64,14 C90,0 128,8 144,42 C158,76 144,120 112,136 C74,154 8,180 0,148Z"
+          fill="#1c460f" opacity="0.50"/>
+    <path d="M0,148 Q72,78 112,136" stroke="#296015" stroke-width="1" opacity="0.28" fill="none"/>
+    <path d="M2,134 C-2,100 16,52 56,32 C78,20 110,28 120,58 C130,88 112,126 84,138 C54,152 5,158 2,134Z"
+          fill="#153b0b" opacity="0.38"/>
+    <path d="M0,148 Q5,136 3,118" stroke="#1a400d" stroke-width="1.4" fill="none" opacity="0.34"/>
+  </svg>
+
+</div>
 
 <header class="site-header">
   <a href="index.html" class="site-logo">← Abecedario de Anuros</a>
@@ -68,7 +163,6 @@
       const db   = getFirestore(app);
       const slug = slugify(rana.tipografia);
 
-      // Cargamos datos de la rana y la tipografía en paralelo
       const timeout = new Promise((_,reject) => setTimeout(() => reject(new Error("timeout")), 7000));
       const [ranaSnap, fontSnap] = await Promise.all([
         Promise.race([getDoc(doc(db, "ranas", letra)), timeout]),
@@ -77,91 +171,77 @@
 
       if (ranaSnap.exists?.()) rana = { ...rana, ...ranaSnap.data() };
 
-      // ── Inyectar fuente desde Firestore (base64) ─────────────────
       if (fontSnap?.exists?.()) {
         const fd = fontSnap.data();
         if (fd.regularB64) {
           const mime = fd.mimeType || "font/otf";
           const style = document.createElement("style");
           style.textContent = `
-            @font-face {
-              font-family: '${rana.tipografia}';
-              src: url('data:${mime};base64,${fd.regularB64}');
-              font-weight: normal; font-style: normal; font-display: swap;
-            }
-            ${fd.italicB64 ? `@font-face {
-              font-family: '${rana.tipografia}';
-              src: url('data:${mime};base64,${fd.italicB64}');
-              font-weight: normal; font-style: italic; font-display: swap;
-            }` : ""}
-          `;
+            @font-face { font-family:'${rana.tipografia}'; src:url('data:${mime};base64,${fd.regularB64}'); font-weight:normal; font-style:normal; font-display:block; }
+            ${fd.italicB64 ? `@font-face { font-family:'${rana.tipografia}'; src:url('data:${mime};base64,${fd.italicB64}'); font-weight:normal; font-style:italic; font-display:block; }` : ""}`;
           document.head.appendChild(style);
           rana._fontFromFirestore = true;
         }
       }
     } catch(e) { console.warn("Firestore no disponible:", e.message); }
 
+    if (!rana._fontFromFirestore) {
+      const fi = FONT_MAP[rana.tipografia] || {};
+      if (fi.googleFont) {
+        const link = document.createElement("link");
+        link.rel  = "stylesheet";
+        link.href = `https://fonts.googleapis.com/css2?family=${fi.googleFont}&display=swap`;
+        document.head.appendChild(link);
+      } else if (fi.localFile) {
+        const s = document.createElement("style");
+        s.textContent = `
+          @font-face { font-family:'${rana.tipografia}'; src:url('fonts/${fi.localFile}/${fi.localFile}.woff2') format('woff2'),url('fonts/${fi.localFile}/${fi.localFile}.woff') format('woff'); font-weight:normal; font-style:normal; font-display:swap; }
+          @font-face { font-family:'${rana.tipografia}'; src:url('fonts/${fi.localFile}/${fi.localFile}-italic.woff2') format('woff2'),url('fonts/${fi.localFile}/${fi.localFile}-italic.woff') format('woff'); font-weight:normal; font-style:italic; font-display:swap; }`;
+        document.head.appendChild(s);
+      }
+    }
+
     renderRana(rana, idx);
   }
+
+  // SVG de hoja pequeña para la ilustración
+  const ILLUS_LEAF_SVG = `<svg width="90" height="75" viewBox="0 0 90 75" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8,0 C25,-3 70,12 85,45 C92,62 85,78 65,82 C45,86 10,72 3,52 C-5,30 -4,5 8,0Z" fill="#0e2409" opacity="0.88"/>
+    <path d="M8,0 Q47,42 65,82" stroke="#193a0d" stroke-width="0.8" opacity="0.3" fill="none"/>
+  </svg>`;
 
   function renderRana(r, idx) {
     document.getElementById("page-title").textContent =
       `${r.nombreComun} (${r.letra.toUpperCase()}) — Abecedario de Anuros`;
-    document.getElementById("page-desc").setAttribute("content",
-      r.descripcion?.substring(0,160) || "");
+    document.getElementById("page-desc").setAttribute("content", r.descripcion?.substring(0,160) || "");
 
     const iucn       = IUCN_CONFIG[r.estadoIUCN] || IUCN_CONFIG["DD"];
     const fontInfo   = FONT_MAP[r.tipografia] || {};
-    const fontFamily = fontInfo.cssFamily || `${r.tipografia}, serif`;
+    const fontFamily = fontInfo.cssFamily || `'${r.tipografia}', serif`;
+    const accent     = r.colorAccent || "var(--accent)";
 
-    // Fallbacks solo si no se cargó desde Firestore
-    if (!r._fontFromFirestore) {
-      if (fontInfo.googleFont) {
-        const link = document.createElement("link");
-        link.rel  = "stylesheet";
-        link.href = `https://fonts.googleapis.com/css2?family=${fontInfo.googleFont}&display=swap`;
-        document.head.appendChild(link);
-      } else if (fontInfo.localFile) {
-        const style = document.createElement("style");
-        style.textContent = `
-          @font-face {
-            font-family: '${r.tipografia}';
-            src: url('fonts/${fontInfo.localFile}/${fontInfo.localFile}.woff2') format('woff2'),
-                 url('fonts/${fontInfo.localFile}/${fontInfo.localFile}.woff') format('woff');
-            font-weight: normal; font-style: normal; font-display: swap;
-          }
-          @font-face {
-            font-family: '${r.tipografia}';
-            src: url('fonts/${fontInfo.localFile}/${fontInfo.localFile}-italic.woff2') format('woff2'),
-                 url('fonts/${fontInfo.localFile}/${fontInfo.localFile}-italic.woff') format('woff');
-            font-weight: normal; font-style: italic; font-display: swap;
-          }`;
-        document.head.appendChild(style);
-      }
-    }
+    const pageStyle = document.createElement("style");
+    pageStyle.textContent = `.rana-page { --rana-font:${fontFamily}; --rana-accent:${accent}; }`;
+    document.head.appendChild(pageStyle);
 
-    // Navegación
     const prevLetra = LETRAS[idx - 1];
     const nextLetra = LETRAS[idx + 1];
     document.getElementById("rana-nav-header").innerHTML = `
-      ${prevLetra ? `<a href="rana.html?letra=${prevLetra}" style="font-family:var(--ui);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:0.35rem 0.6rem;border-radius:4px;transition:color 0.3s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">← ${prevLetra.toUpperCase()}</a>` : ""}
-      ${nextLetra ? `<a href="rana.html?letra=${nextLetra}" style="font-family:var(--ui);font-size:0.72rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);padding:0.35rem 0.6rem;border-radius:4px;transition:color 0.3s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">→ ${nextLetra.toUpperCase()}</a>` : ""}
-    `;
+      ${prevLetra ? `<a href="rana.html?letra=${prevLetra}" style="font-family:var(--ui);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);padding:0 1rem;height:52px;display:flex;align-items:center;border-left:1px solid var(--border);transition:color 0.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">← ${prevLetra.toUpperCase()}</a>` : ""}
+      ${nextLetra ? `<a href="rana.html?letra=${nextLetra}" style="font-family:var(--ui);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-muted);padding:0 1rem;height:52px;display:flex;align-items:center;border-left:1px solid var(--border);transition:color 0.2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text-muted)'">→ ${nextLetra.toUpperCase()}</a>` : ""}`;
 
     const pageUrl = `${window.location.origin}${window.location.pathname}?letra=${r.letra}`;
 
-    // Video
     const videoSegmentos = r.videoSegmentos || [];
     const videoHTML = videoSegmentos.length > 0 ? `
       <div class="video-section content-section">
         <p class="content-section-label">Timelapse de ilustración</p>
         <div class="video-tabs" id="video-tabs">
           ${videoSegmentos.map((seg,i) => `
-            <button class="video-tab ${i===0?'active':''}"
+            <button class="video-tab ${i===0?"active":""}"
               data-url="${seg.url}" data-start="${seg.inicio||0}" data-end="${seg.fin||0}"
               onclick="selectVideoTab(this)">
-              ${seg.etiqueta||`Segmento ${i+1}`}${seg.inicio?` (${formatTime(seg.inicio)})`:''}
-            </button>`).join("")}
+              ${seg.etiqueta||`Segmento ${i+1}`}${seg.inicio?` (${formatTime(seg.inicio)})`:""}</button>`).join("")}
         </div>
         <div class="video-player" id="video-player">${buildVideoEmbed(videoSegmentos[0])}</div>
       </div>` : `
@@ -170,24 +250,23 @@
         <div class="video-player"><div class="no-video">El timelapse de esta rana aún no está disponible.</div></div>
       </div>`;
 
-    // Imágenes de referencia
     const refImages = r.imagenesReferencia || [];
-    function buildRefImgHTML(img) {
-      const u = (img.url||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;");
-      const c = (img.caption||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
-      return `<div class="ref-image-item" onclick="openLightbox('${u}','${c}')">
-        <img src="${u}" alt="${c||'Imagen de referencia'}" loading="lazy">
-        ${img.caption?`<p class="ref-image-caption">${img.caption}</p>`:''}
-      </div>`;
-    }
     const refImgHTML = refImages.length > 0 ? `
       <div class="content-section">
         <p class="content-section-label">Imágenes de referencia</p>
-        <div class="ref-images-grid">${refImages.map(buildRefImgHTML).join("")}</div>
+        <div class="ref-images-grid">
+          ${refImages.map(img => {
+            const u = (img.url||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;");
+            const c = (img.caption||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+            return `<div class="ref-image-item" onclick="openLightbox('${u}','${c}')">
+              <img src="${u}" alt="${c||'Imagen de referencia'}" loading="lazy">
+              ${img.caption?`<p class="ref-image-caption">${img.caption}</p>`:""}
+            </div>`;
+          }).join("")}
+        </div>
       </div>` : "";
 
-    // Referencias APA
-    const refTexto = (r.referenciasTexto||"").trim();
+    const refTexto   = (r.referenciasTexto||"").trim();
     const refAPAHTML = refTexto ? `
       <div class="content-section">
         <p class="content-section-label">Referencias</p>
@@ -197,18 +276,15 @@
       </div>` : "";
 
     const inatHTML = r.inatLink
-      ? `<a href="${r.inatLink}" target="_blank" rel="noopener" class="inat-link">Ver en iNaturalist ↗</a>`
-      : "";
+      ? `<a href="${r.inatLink}" target="_blank" rel="noopener" class="inat-link">Ver en iNaturalist ↗</a>` : "";
 
     document.getElementById("rana-page").innerHTML = `
       <section class="rana-hero">
-        <div class="rana-letter-bg" aria-hidden="true" style="font-family:${fontFamily}">${r.letra.toUpperCase()}</div>
+        <div class="rana-letter-bg" aria-hidden="true">${r.letra.toUpperCase()}</div>
 
         <div class="rana-hero-info fade-up">
           <p class="clasificacion-badge">${r.clasificacion} · ${r.subclasificacion}</p>
-          <span class="rana-letra-display" style="font-family:${fontFamily};color:${r.colorAccent||'var(--accent)'}">
-            ${r.letra.toUpperCase()}${r.letra.toLowerCase()}
-          </span>
+          <span class="rana-letra-display">${r.letra.toUpperCase()}${r.letra.toLowerCase()}</span>
           <h1 class="rana-nombre-comun">${r.nombreComun}</h1>
           <p class="rana-nombre-cientifico">${r.nombreCientifico}</p>
 
@@ -227,19 +303,47 @@
             <p class="tipo-display-label">Tipografía asignada</p>
             <p class="tipo-display-name">${r.tipografia}</p>
             <p class="tipo-display-sub">${r.clasificacion} · ${r.subclasificacion}</p>
-            <p class="tipo-display-sample" style="font-family:${fontFamily}">
-              ${r.letra.toUpperCase()}${r.letra.toLowerCase()} &nbsp; Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz
+            <p class="tipo-display-sample">
+              ${r.letra.toUpperCase()}${r.letra.toLowerCase()} &nbsp; Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn
             </p>
           </div>
         </div>
 
-        <div class="rana-hero-illustration fade-up" style="animation-delay:0.1s">
+        <div class="rana-hero-illustration fade-up" style="animation-delay:0.08s">
           <div class="illustration-wrapper">
-            <div class="illustration-glow" style="background:${r.colorAccent||'#7CBA5A'}"></div>
+            <div class="illustration-glow" style="background:${accent}"></div>
             <div class="illustration-frame" data-letra="${r.letra.toUpperCase()}">
               ${r.imagenUrl
                 ? `<img class="illustration-img" src="${r.imagenUrl}" alt="Ilustración de ${r.nombreComun}">`
                 : `<div class="illustration-placeholder">🐸</div>`}
+
+              <!-- Hojas decorativas sobre la ilustración -->
+              <div class="illus-leaf illus-leaf-tl" aria-hidden="true">
+                <svg width="100" height="82" viewBox="0 0 100 82" fill="none">
+                  <path d="M10,0 C30,-4 82,14 96,50 C104,70 96,90 74,94 C50,98 8,82 2,58 C-6,30 -4,5 10,0Z" fill="#0e2409" opacity="0.9"/>
+                  <path d="M10,0 Q53,47 74,94" stroke="#1c3a0e" stroke-width="0.9" opacity="0.32" fill="none"/>
+                  <path d="M10,0 Q25,-2 48,8 Q35,18 50,30" stroke="#1a360c" stroke-width="0.6" opacity="0.22" fill="none"/>
+                </svg>
+              </div>
+              <div class="illus-leaf illus-leaf-tr" aria-hidden="true">
+                <svg width="85" height="70" viewBox="0 0 85 70" fill="none">
+                  <path d="M8,0 C25,-3 72,12 82,42 C88,58 80,72 62,76 C42,80 6,68 1,48 C-5,26 -3,4 8,0Z" fill="#0d2108" opacity="0.86"/>
+                  <path d="M8,0 Q45,38 62,76" stroke="#1a380d" stroke-width="0.8" opacity="0.28" fill="none"/>
+                </svg>
+              </div>
+              <div class="illus-leaf illus-leaf-bl" aria-hidden="true">
+                <svg width="92" height="76" viewBox="0 0 92 76" fill="none">
+                  <path d="M5,0 C22,-3 78,14 90,46 C98,65 90,82 68,86 C46,90 5,76 0,52 C-6,26 -5,4 5,0Z" fill="#0e2409" opacity="0.88"/>
+                  <path d="M5,0 Q46,43 68,86" stroke="#1c3a0e" stroke-width="0.9" opacity="0.3" fill="none"/>
+                </svg>
+              </div>
+              <div class="illus-leaf illus-leaf-br" aria-hidden="true">
+                <svg width="78" height="65" viewBox="0 0 78 65" fill="none">
+                  <path d="M7,0 C22,-3 66,10 76,38 C82,54 74,66 56,70 C38,74 4,62 0,44 C-5,22 -3,4 7,0Z" fill="#0d2008" opacity="0.84"/>
+                  <path d="M7,0 Q39,35 56,70" stroke="#192f0c" stroke-width="0.8" opacity="0.26" fill="none"/>
+                </svg>
+              </div>
+
             </div>
           </div>
         </div>
@@ -260,7 +364,7 @@
             </div>` : `
             <div class="content-section">
               <p class="content-section-label">Descripción</p>
-              <p style="color:var(--text-muted);font-style:italic">La información de esta especie se está preparando.</p>
+              <p style="color:var(--text-muted);font-style:italic;font-family:var(--rana-font)">La información de esta especie se está preparando.</p>
             </div>`}
             ${videoHTML}
             ${refImgHTML}
@@ -280,9 +384,9 @@
                   <dd>${r.coloracion||'<em style="color:var(--text-muted)">Próximamente</em>'}</dd>
                 </div>
                 <div class="info-row">
-                  <dt>Estado IUCN</dt>
+                  <dt>IUCN</dt>
                   <dd>
-                    <span style="background:${iucn.color};color:#fff;padding:0.1rem 0.4rem;border-radius:2px;font-size:0.72rem;font-family:var(--ui);font-weight:700">${r.estadoIUCN}</span>
+                    <span style="background:${iucn.color};color:#fff;padding:0.1rem 0.4rem;border-radius:2px;font-size:0.66rem;font-family:var(--ui)">${r.estadoIUCN}</span>
                     &nbsp;${iucn.label}
                   </dd>
                 </div>
@@ -292,7 +396,7 @@
             <div class="info-card">
               <div class="info-card-header">Tipografía</div>
               <dl>
-                <div class="info-row"><dt>Nombre</dt><dd style="font-family:${fontFamily}">${r.tipografia}</dd></div>
+                <div class="info-row"><dt>Nombre</dt><dd>${r.tipografia}</dd></div>
                 <div class="info-row"><dt>Familia</dt><dd>${r.clasificacion}</dd></div>
                 <div class="info-row"><dt>Subfamilia</dt><dd>${r.subclasificacion}</dd></div>
               </dl>
@@ -300,7 +404,7 @@
 
             <div class="qr-section">
               <p class="content-section-label" style="justify-content:center;margin-bottom:0.5rem">Código QR</p>
-              <p style="font-size:0.68rem;color:var(--text-muted);font-family:var(--ui);margin-bottom:0.75rem">Escanea para abrir esta página</p>
+              <p style="font-size:0.6rem;color:var(--text-muted);font-family:var(--ui);margin-bottom:0.65rem">Escanea para abrir esta página</p>
               <div id="qr-code"></div>
               <p class="qr-url">${pageUrl}</p>
             </div>
@@ -309,25 +413,28 @@
       </main>
 
       <nav class="rana-nav" aria-label="Navegación entre letras">
-        ${prevLetra?`
-          <a href="rana.html?letra=${prevLetra}" class="rana-nav-btn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 18l-6-6 6-6"/></svg>
-            ${prevLetra.toUpperCase()}${prevLetra.toLowerCase()} — anterior
-          </a>`:'<span></span>'}
-        <a href="index.html" class="rana-nav-btn" style="font-size:0.65rem">Ver todas</a>
-        ${nextLetra?`
-          <a href="rana.html?letra=${nextLetra}" class="rana-nav-btn">
-            ${nextLetra.toUpperCase()}${nextLetra.toLowerCase()} — siguiente
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18l6-6-6-6"/></svg>
-          </a>`:'<span></span>'}
+        ${prevLetra
+          ? `<a href="rana.html?letra=${prevLetra}" class="rana-nav-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 18l-6-6 6-6"/></svg>
+              ${prevLetra.toUpperCase()}${prevLetra} — anterior
+            </a>` : `<span></span>`}
+        <span class="rana-nav-center">Abecedario de Anuros</span>
+        ${nextLetra
+          ? `<a href="rana.html?letra=${nextLetra}" class="rana-nav-btn">
+              ${nextLetra.toUpperCase()}${nextLetra} — siguiente
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18l6-6-6-6"/></svg>
+            </a>` : `<span></span>`}
       </nav>
     `;
 
     setTimeout(() => {
       const qrEl = document.getElementById("qr-code");
       if (qrEl && typeof QRCode !== "undefined") {
-        new QRCode(qrEl, { text:pageUrl, width:132, height:132,
-          colorDark:"#EAE8E0", colorLight:"#1C2116", correctLevel:QRCode.CorrectLevel.M });
+        new QRCode(qrEl, {
+          text: pageUrl, width: 128, height: 128,
+          colorDark: "#E6E0CF", colorLight: "#161b0f",
+          correctLevel: QRCode.CorrectLevel.M
+        });
       }
     }, 120);
 
@@ -340,28 +447,38 @@
 
   function buildVideoEmbed(seg) {
     if (!seg?.url) return '<div class="no-video">Video no disponible.</div>';
-    const drive = seg.url.match(/(?:drive\.google\.com\/file\/d\/|\/d\/)([a-zA-Z0-9_-]+)/);
-    if (drive) return `<iframe src="https://drive.google.com/file/d/${drive[1]}/preview#t=${seg.inicio||0}" allow="autoplay" allowfullscreen title="Timelapse"></iframe>`;
+    const inicio = parseInt(seg.inicio) || 0;
+    const fin    = parseInt(seg.fin)    || 0;
     const yt = seg.url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/))([a-zA-Z0-9_-]+)/);
-    if (yt) return `<iframe src="https://www.youtube.com/embed/${yt[1]}?start=${seg.inicio||0}${seg.fin?`&end=${seg.fin}`:""}&rel=0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Timelapse"></iframe>`;
-    if (seg.url.match(/\.(mp4|webm|ogg)$/i)) return `<video controls style="width:100%;height:100%;position:absolute;inset:0" ${seg.inicio?`onloadedmetadata="this.currentTime=${seg.inicio}"`:""}><source src="${seg.url}" type="video/mp4"></video>`;
+    if (yt) {
+      const endParam = fin > inicio ? `&end=${fin}` : "";
+      return `<iframe src="https://www.youtube.com/embed/${yt[1]}?start=${inicio}${endParam}&rel=0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen title="Timelapse"></iframe>`;
+    }
+    const drive = seg.url.match(/(?:drive\.google\.com\/file\/d\/|\/d\/)([a-zA-Z0-9_-]+)/);
+    if (drive) {
+      return `<iframe src="https://drive.google.com/file/d/${drive[1]}/preview#t=${inicio}" allow="autoplay" allowfullscreen title="Timelapse"></iframe>`;
+    }
+    if (seg.url.match(/\.(mp4|webm|ogg)$/i)) {
+      const endAttr = fin > inicio ? `ontimeupdate="if(this.currentTime>=${fin})this.pause()"` : "";
+      return `<video controls style="position:absolute;inset:0;width:100%;height:100%" ${inicio?`onloadedmetadata="this.currentTime=${inicio}"`:""}  ${endAttr}><source src="${seg.url}" type="video/mp4"></video>`;
+    }
     return '<div class="no-video">Formato de video no reconocido.</div>';
   }
 
   function initLightbox() {
-    const lb = document.getElementById("lightbox");
+    const lb    = document.getElementById("lightbox");
     const lbImg = document.getElementById("lightbox-img");
     document.getElementById("lightbox-close").addEventListener("click", () => lb.classList.remove("open"));
     lb.addEventListener("click", e => { if (e.target === lb) lb.classList.remove("open"); });
     document.addEventListener("keydown", e => { if (e.key === "Escape") lb.classList.remove("open"); });
-    window.openLightbox = (url,alt) => { lbImg.src=url; lbImg.alt=alt; lb.classList.add("open"); };
+    window.openLightbox = (url, alt) => { lbImg.src = url; lbImg.alt = alt; lb.classList.add("open"); };
   }
 
   window.selectVideoTab = function(btn) {
     document.querySelectorAll(".video-tab").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById("video-player").innerHTML =
-      buildVideoEmbed({ url:btn.dataset.url, inicio:parseInt(btn.dataset.start)||0, fin:parseInt(btn.dataset.end)||0 });
+      buildVideoEmbed({ url: btn.dataset.url, inicio: parseInt(btn.dataset.start)||0, fin: parseInt(btn.dataset.end)||0 });
   };
   window.buildVideoEmbed = buildVideoEmbed;
 </script>
